@@ -1,10 +1,14 @@
 const mongoose = require('mongoose');
 
 const mesaSchema = new mongoose.Schema({
+  restaurante: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Restaurante',
+    required: true
+  },
   numero: {
     type: Number,
-    required: true,
-    unique: true
+    required: true
   },
   capacidade: {
     type: Number,

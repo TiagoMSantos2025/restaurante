@@ -29,6 +29,11 @@ const itemSchema = new mongoose.Schema({
 });
 
 const pedidoSchema = new mongoose.Schema({
+  restaurante: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Restaurante',
+    required: true
+  },
   mesa: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Mesa',

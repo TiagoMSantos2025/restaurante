@@ -10,11 +10,24 @@
 </head>
 <body>
     <div id="app">
+        <!-- Selecção de Restaurante -->
+        <div id="restaurante-section" class="section active">
+            <div class="container">
+                <h1>Selecione um Restaurante</h1>
+                <div class="restaurante-selection">
+                    <select id="restaurante-select" onchange="carregarMesa()">
+                        <option value="">Escolha um restaurante...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <!-- Login Section -->
-        <div id="login-section" class="section active">
+        <div id="login-section" class="section">
             <div class="container">
                 <h1>Bem-vindo ao Sistema de Restaurante</h1>
                 <div class="login-form">
+                    <input type="hidden" id="restaurante-id">
                     <input type="text" id="cliente-nome" placeholder="Seu nome" required>
                     <button onclick="iniciarPedido()">Iniciar Pedido</button>
                 </div>

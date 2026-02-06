@@ -27,6 +27,11 @@
                 <header>
                     <div class="header-top">
                         <h1>Cozinha - Controle de Pedidos</h1>
+                        <div class="restaurante-selection">
+                            <select id="restaurante-select" onchange="carregarPedidosRestaurante()">
+                                <option value="">Selecione um restaurante...</option>
+                            </select>
+                        </div>
                         <div class="user-info">
                             <span id="kitchen-user-name"></span>
                             <button onclick="logout()">Sair</button>

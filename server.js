@@ -40,6 +40,7 @@ const Pedido = require('./models/Pedido');
 const Usuario = require('./models/Usuario');
 const Notificacao = require('./models/Notificacao');
 const Fidelidade = require('./models/Fidelidade');
+const Restaurante = require('./models/Restaurante');
 
 // Services
 const fidelidadeService = require('./services/fidelidadeService');
@@ -75,10 +76,11 @@ const authorizeRoles = (...roles) => {
 };
 
 // QR Code Generation
-const generateQRCode = async (tableNumber) => {
+const generateQRCode = async (tableNumber, restauranteId) => {
   try {
     const qrData = JSON.stringify({
       tableNumber: tableNumber,
+      restauranteId: restauranteId,
       timestamp: Date.now()
     });
     return await QRCode.toDataURL(qrData);
@@ -172,100 +174,138 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// Table Routes
-app.get('/api/mesas', authenticateToken, async (req, res) => {
+// Admin Routes
+app.get('/api/admin/restaurantes', authenticateToken, authorizeRoles('admin'), async (req, res) => {
   try {
-    const mesas = await Mesa.find().sort({ numero: 1 });
-    res.json(mesas);
+    const restaurantes = await Restaurante.find().select('-produtos'); // Não retorna os produtos para economizar dados
+    res.json(restaurantes);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.post('/api/mesas', authenticateToken, authorizeRoles('admin', 'manager'), async (req, res) => {
+app.post('/api/admin/restaurantes', authenticateToken, authorizeRoles('admin'), async (req, res) => {
+  try {
+    const { nome, endereco, telefone, proprietario } = req.body;
+    
+    const novoRestaurante = new Restaurante({
+      nome,
+      endereco,
+      telefone,
+      proprietario
+    });
+    
+    await novoRestaurante.save();
+    res.status(201).json(novoRestaurante);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/restaurantes/:id', authenticateToken, async (req, res) => {
+  try {
+    const restaurante = await Restaurante.findById(req.params.id);
+    if (!restaurante) {
+      return res.status(404).json({ error: 'Restaurante não encontrado' });
+    }
+    res.json(restaurante);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Product Routes
+app.get('/api/restaurantes/:restauranteId/produtos', authenticateToken, async (req, res) => {
+  try {
+    const restaurante = await Restaurante.findById(req.params.restauranteId);
+    if (!restaurante) {
+      return res.status(404).json({ error: 'Restaurante não encontrado' });
+    }
+    res.json(restaurante.produtos);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/restaurantes/:restauranteId/produtos', authenticateToken, authorizeRoles('admin', 'manager'), async (req, res) => {
+  try {
+    const { nome, descricao, preco, categoria, ingredientes, imagem } = req.body;
+    
+    const produto = {
+      nome,
+      descricao,
+      preco,
+      categoria,
+      ingredientes: ingredientes || [],
+      imagem: imagem || null
+    };
+    
+    const restaurante = await Restaurante.findByIdAndUpdate(
+      req.params.restauranteId,
+      { $push: { produtos: produto } },
+      { new: true, runValidators: true }
+    );
+    
+    if (!restaurante) {
+      return res.status(404).json({ error: 'Restaurante não encontrado' });
+    }
+    
+    res.status(201).json(produto);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Table Routes
+app.get('/api/restaurantes/:restauranteId/mesas', authenticateToken, async (req, res) => {
+  try {
+    const restaurante = await Restaurante.findById(req.params.restauranteId);
+    if (!restaurante) {
+      return res.status(404).json({ error: 'Restaurante não encontrado' });
+    }
+    res.json(restaurante.mesas);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/restaurantes/:restauranteId/mesas', authenticateToken, authorizeRoles('admin', 'manager'), async (req, res) => {
   try {
     const { numero, capacidade } = req.body;
     
-    const existingMesa = await Mesa.findOne({ numero });
-    if (existingMesa) {
-      return res.status(400).json({ error: 'Table already exists' });
-    }
-
-    const qrCode = await generateQRCode(numero);
-    const novaMesa = new Mesa({
+    // Generate QR code for the table
+    const qrCode = await generateQRCode(numero, req.params.restauranteId);
+    
+    const mesa = {
       numero,
       capacidade,
       qrCode
-    });
-
-    await novaMesa.save();
-    res.status(201).json(novaMesa);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.put('/api/mesas/:id', authenticateToken, authorizeRoles('admin', 'manager'), async (req, res) => {
-  try {
-    const { capacidade, status } = req.body;
-    const mesa = await Mesa.findByIdAndUpdate(
-      req.params.id,
-      { capacidade, status },
-      { new: true }
+    };
+    
+    const restaurante = await Restaurante.findByIdAndUpdate(
+      req.params.restauranteId,
+      { $push: { mesas: mesa } },
+      { new: true, runValidators: true }
     );
-    res.json(mesa);
+    
+    if (!restaurante) {
+      return res.status(404).json({ error: 'Restaurante não encontrado' });
+    }
+    
+    res.status(201).json(mesa);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
 // Menu Item Routes
-app.get('/api/cardapio', authenticateToken, async (req, res) => {
+app.get('/api/cardapio/:restauranteId', authenticateToken, async (req, res) => {
   try {
-    // In a real app, this would come from a Cardapio model
-    const cardapio = [
-      {
-        id: 1,
-        categoria: 'Lanches',
-        nome: 'X-Burger',
-        descricao: 'Hambúrguer com queijo, alface e tomate',
-        preco: 25.00,
-        imagem: '/images/lanche1.jpg'
-      },
-      {
-        id: 2,
-        categoria: 'Lanches',
-        nome: 'X-Salada',
-        descricao: 'Hambúrguer com salada completa',
-        preco: 28.00,
-        imagem: '/images/lanche2.jpg'
-      },
-      {
-        id: 3,
-        categoria: 'Pizzas',
-        nome: 'Margherita',
-        descricao: 'Molho de tomate, mussarela e manjericão',
-        preco: 45.00,
-        imagem: '/images/pizza1.jpg'
-      },
-      {
-        id: 4,
-        categoria: 'Bebidas',
-        nome: 'Refrigerante',
-        descricao: 'Coca-Cola, Guaraná ou Fanta',
-        preco: 8.00,
-        imagem: '/images/bebida1.jpg'
-      },
-      {
-        id: 5,
-        categoria: 'Bebidas',
-        nome: 'Suco Natural',
-        descricao: 'Laranja, Acerola ou Maracujá',
-        preco: 12.00,
-        imagem: '/images/suco1.jpg'
-      }
-    ];
-    res.json(cardapio);
+    const restaurante = await Restaurante.findById(req.params.restauranteId);
+    if (!restaurante) {
+      return res.status(404).json({ error: 'Restaurante não encontrado' });
+    }
+    res.json(restaurante.produtos.filter(p => p.ativo));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -274,7 +314,21 @@ app.get('/api/cardapio', authenticateToken, async (req, res) => {
 // Order Routes
 app.get('/api/pedidos', authenticateToken, async (req, res) => {
   try {
+    // Only return orders for the user's assigned restaurant (if applicable)
+    // For now, returning all orders with populate
     const pedidos = await Pedido.find()
+      .populate('mesa')
+      .populate('restaurante')
+      .sort({ createdAt: -1 });
+    res.json(pedidos);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/pedidos/:restauranteId', authenticateToken, async (req, res) => {
+  try {
+    const pedidos = await Pedido.find({ restaurante: req.params.restauranteId })
       .populate('mesa')
       .sort({ createdAt: -1 });
     res.json(pedidos);
@@ -283,11 +337,16 @@ app.get('/api/pedidos', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/api/pedidos/:tableNumber', async (req, res) => {
+app.get('/api/pedidos/:restauranteId/:tableNumber', async (req, res) => {
   try {
-    const mesa = await Mesa.findOne({ numero: req.params.tableNumber });
+    const restaurante = await Restaurante.findOne({ _id: req.params.restauranteId });
+    if (!restaurante) {
+      return res.status(404).json({ error: 'Restaurante não encontrado' });
+    }
+
+    const mesa = restaurante.mesas.find(m => m.numero == req.params.tableNumber);
     if (!mesa) {
-      return res.status(404).json({ error: 'Table not found' });
+      return res.status(404).json({ error: 'Mesa não encontrada' });
     }
 
     const pedidos = await Pedido.find({ mesa: mesa._id })
@@ -301,17 +360,33 @@ app.get('/api/pedidos/:tableNumber', async (req, res) => {
 
 app.post('/api/pedidos', async (req, res) => {
   try {
-    const { mesaNumero, itens, clienteNome } = req.body;
+    const { mesaNumero, restauranteId, itens, clienteNome } = req.body;
 
-    const mesa = await Mesa.findOne({ numero: mesaNumero });
-    if (!mesa) {
-      return res.status(404).json({ error: 'Table not found' });
+    const restaurante = await Restaurante.findById(restauranteId);
+    if (!restaurante) {
+      return res.status(404).json({ error: 'Restaurante não encontrado' });
     }
+
+    // Find the table in the restaurant
+    const mesaInfo = restaurante.mesas.find(m => m.numero == mesaNumero);
+    if (!mesaInfo) {
+      return res.status(404).json({ error: 'Mesa não encontrada' });
+    }
+
+    // Create a new Mesa document linked to this restaurant
+    const mesa = new Mesa({
+      restaurante: restaurante._id,
+      numero: mesaInfo.numero,
+      capacidade: mesaInfo.capacidade,
+      qrCode: mesaInfo.qrCode
+    });
+    await mesa.save();
 
     // Calculate total
     const total = itens.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
 
     const novoPedido = new Pedido({
+      restaurante: restaurante._id,
       mesa: mesa._id,
       itens,
       clienteNome,
@@ -321,18 +396,16 @@ app.post('/api/pedidos', async (req, res) => {
 
     await novoPedido.save();
 
-    // Emit notification to kitchen and counter
-    io.emit('novo-pedido', novoPedido);
-    io.emit('pedido-atualizado', novoPedido);
+    // Emit notification to kitchen and counter for this specific restaurant
+    io.to(`restaurante_${restaurante._id}`).emit('novo-pedido', novoPedido);
+    io.to(`restaurante_${restaurante._id}`).emit('pedido-atualizado', novoPedido);
+
+    // Emit sound notification for new order
+    io.to(`restaurante_${restaurante._id}`).emit('novo-pedido-sound', true);
 
     // Register loyalty points for the customer
     if (clienteNome) {
-      // In a real app, we would link to the actual user account
-      // For demo purposes, we'll simulate by trying to find a user with the client name
-      // But we'll just award points based on order total
       try {
-        // This is a simplified approach - in a real app we would have the actual user ID
-        // For now, we'll just simulate by awarding points for any order
         await fidelidadeService.registrarGanhoPontos(
           'demo_user_id', // In a real app, this would be the actual user ID
           total,
@@ -357,14 +430,14 @@ app.put('/api/pedidos/:id/status', authenticateToken, async (req, res) => {
       req.params.id,
       { status },
       { new: true }
-    ).populate('mesa');
+    ).populate('mesa').populate('restaurante');
 
     if (!pedido) {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    // Emit notification about status update
-    io.emit('pedido-atualizado', pedido);
+    // Emit notification about status update to the specific restaurant room
+    io.to(`restaurante_${pedido.restaurante._id}`).emit('pedido-atualizado', pedido);
 
     res.json(pedido);
   } catch (error) {
@@ -407,7 +480,7 @@ app.post('/api/notificacoes', authenticateToken, async (req, res) => {
 });
 
 // Analytics Routes
-app.get('/api/analytics/vendas', authenticateToken, authorizeRoles('admin', 'manager'), async (req, res) => {
+app.get('/api/analytics/vendas/:restauranteId', authenticateToken, authorizeRoles('admin', 'manager'), async (req, res) => {
   try {
     const startDate = req.query.startDate ? new Date(req.query.startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const endDate = req.query.endDate ? new Date(req.query.endDate) : new Date();
@@ -415,6 +488,7 @@ app.get('/api/analytics/vendas', authenticateToken, authorizeRoles('admin', 'man
     const vendas = await Pedido.aggregate([
       {
         $match: {
+          restaurante: mongoose.Types.ObjectId(req.params.restauranteId),
           createdAt: { $gte: startDate, $lte: endDate },
           status: 'delivered'
         }
@@ -436,6 +510,7 @@ app.get('/api/analytics/vendas', authenticateToken, authorizeRoles('admin', 'man
     const totalVendasPeriodo = await Pedido.aggregate([
       {
         $match: {
+          restaurante: mongoose.Types.ObjectId(req.params.restauranteId),
           createdAt: { $gte: startDate, $lte: endDate },
           status: 'delivered'
         }
@@ -458,7 +533,7 @@ app.get('/api/analytics/vendas', authenticateToken, authorizeRoles('admin', 'man
   }
 });
 
-app.get('/api/analytics/produtos-mais-vendidos', authenticateToken, authorizeRoles('admin', 'manager'), async (req, res) => {
+app.get('/api/analytics/produtos-mais-vendidos/:restauranteId', authenticateToken, authorizeRoles('admin', 'manager'), async (req, res) => {
   try {
     const startDate = req.query.startDate ? new Date(req.query.startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const endDate = req.query.endDate ? new Date(req.query.endDate) : new Date();
@@ -466,6 +541,7 @@ app.get('/api/analytics/produtos-mais-vendidos', authenticateToken, authorizeRol
     const produtosMaisVendidos = await Pedido.aggregate([
       {
         $match: {
+          restaurante: mongoose.Types.ObjectId(req.params.restauranteId),
           createdAt: { $gte: startDate, $lte: endDate },
           status: 'delivered'
         }
@@ -532,7 +608,7 @@ app.get('/api/backup', authenticateToken, authorizeRoles('admin'), async (req, r
     // Add database dump (simplified - in real app would export actual data)
     const dbBackup = {
       timestamp: new Date(),
-      collections: ['mesas', 'pedidos', 'usuarios', 'notificacoes']
+      collections: ['mesas', 'pedidos', 'usuarios', 'notificacoes', 'restaurantes']
     };
     
     archive.append(JSON.stringify(dbBackup, null, 2), { name: 'db_backup.json' });
@@ -582,10 +658,10 @@ app.post('/api/fidelidade/resgatar', authenticateToken, async (req, res) => {
 });
 
 // QR Code Generation Route
-app.get('/api/qrcode/:tableNumber', async (req, res) => {
+app.get('/api/qrcode/:restauranteId/:tableNumber', async (req, res) => {
   try {
-    const { tableNumber } = req.params;
-    const qrCode = await generateQRCode(tableNumber);
+    const { restauranteId, tableNumber } = req.params;
+    const qrCode = await generateQRCode(tableNumber, restauranteId);
     
     res.json({ qrCode });
   } catch (error) {

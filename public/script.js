@@ -1,5 +1,6 @@
 // Global variables
 let currentTableNumber = null;
+let currentRestauranteId = null;
 let currentClientName = '';
 let cart = [];
 let socket = null;
@@ -8,7 +9,7 @@ let currentLanguage = 'pt';
 // Translations
 const translations = {
   pt: {
-    welcome: 'Bem-vindo ao Restaurante Estradeiro',
+    welcome: 'Bem-vindo ao Sistema de Restaurante',
     yourName: 'Seu nome',
     startOrder: 'Iniciar Pedido',
     digitalMenu: 'Cardápio Digital',
@@ -28,10 +29,12 @@ const translations = {
     bronze: 'Bronze',
     silver: 'Prata',
     gold: 'Ouro',
-    platinum: 'Platina'
+    platinum: 'Platina',
+    selectRestaurant: 'Selecione um Restaurante',
+    chooseRestaurant: 'Escolha um restaurante...'
   },
   en: {
-    welcome: 'Welcome to Restaurante Estradeiro',
+    welcome: 'Welcome to Restaurant System',
     yourName: 'Your name',
     startOrder: 'Start Order',
     digitalMenu: 'Digital Menu',
@@ -51,10 +54,12 @@ const translations = {
     bronze: 'Bronze',
     silver: 'Silver',
     gold: 'Gold',
-    platinum: 'Platinum'
+    platinum: 'Platinum',
+    selectRestaurant: 'Select a Restaurant',
+    chooseRestaurant: 'Choose a restaurant...'
   },
   es: {
-    welcome: 'Bienvenido a Restaurante Estradeiro',
+    welcome: 'Bienvenido al Sistema de Restaurante',
     yourName: 'Tu nombre',
     startOrder: 'Iniciar Pedido',
     digitalMenu: 'Menú Digital',
@@ -74,7 +79,9 @@ const translations = {
     bronze: 'Bronce',
     silver: 'Plata',
     gold: 'Oro',
-    platinum: 'Platino'
+    platinum: 'Platino',
+    selectRestaurant: 'Seleccione un Restaurante',
+    chooseRestaurant: 'Elija un restaurante...'
   }
 };
 
@@ -87,8 +94,8 @@ function initializeApp() {
   // Connect to socket
   socket = io();
   
-  // Load menu items
-  loadMenuItems();
+  // Load restaurants
+  loadRestaurants();
   
   // Set up event listeners
   setupEventListeners();
@@ -97,11 +104,87 @@ function initializeApp() {
   updateLanguageDisplay();
 }
 
+function loadRestaurants() {
+  fetch('/api/admin/restaurantes')
+    .then(response => response.json())
+    .then(restaurantes => {
+      const select = document.getElementById('restaurante-select');
+      select.innerHTML = `<option value="">${translations[currentLanguage].chooseRestaurant}</option>`;
+      
+      restaurantes.forEach(restaurante => {
+        const option = document.createElement('option');
+        option.value = restaurante._id;
+        option.textContent = restaurante.nome;
+        select.appendChild(option);
+      });
+    })
+    .catch(error => {
+      console.error('Error loading restaurants:', error);
+      showNotification('Erro ao carregar restaurantes', 'error');
+    });
+}
+
+function carregarMesa() {
+  const select = document.getElementById('restaurante-select');
+  const restauranteId = select.value;
+  
+  if (!restauranteId) {
+    // Hide login section and show restaurant selection
+    document.getElementById('restaurante-section').classList.add('active');
+    document.getElementById('login-section').classList.remove('active');
+    document.getElementById('menu-section').classList.remove('active');
+    return;
+  }
+  
+  // Store restaurante ID
+  currentRestauranteId = restauranteId;
+  
+  // Show login section
+  document.getElementById('restaurante-section').classList.remove('active');
+  document.getElementById('login-section').classList.add('active');
+  
+  // Update hidden input
+  document.getElementById('restaurante-id').value = restauranteId;
+  
+  // Load menu items for this restaurant
+  loadMenuItems(restauranteId);
+}
+
 function setupEventListeners() {
   // Listen for order updates
   socket.on('pedido-atualizado', function(pedido) {
     showNotification('Status do pedido atualizado: ' + pedido.status, 'info');
   });
+  
+  // Listen for new order sounds
+  socket.on('novo-pedido-sound', function(hasSound) {
+    if (hasSound) {
+      playNotificationSound();
+    }
+  });
+}
+
+function playNotificationSound() {
+  // Create a simple beep sound using Web Audio API
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 800;
+    gainNode.gain.value = 0.3;
+
+    oscillator.start();
+    setTimeout(() => {
+      oscillator.stop();
+    }, 500);
+  } catch (e) {
+      console.error("Could not play sound:", e);
+  }
 }
 
 function iniciarPedido() {
@@ -124,8 +207,8 @@ function iniciarPedido() {
   updateLoyaltyDisplay();
 }
 
-function loadMenuItems() {
-  fetch('/api/cardapio')
+function loadMenuItems(restauranteId) {
+  fetch(`/api/cardapio/${restauranteId}`)
     .then(response => response.json())
     .then(items => {
       displayMenuItems(items);
@@ -150,7 +233,7 @@ function createMenuItemElement(item) {
   const div = document.createElement('div');
   div.className = 'item-card';
   div.innerHTML = `
-    <img src="${item.imagem}" alt="${item.nome}">
+    <img src="${item.imagem || '/images/default-food.jpg'}" alt="${item.nome}">
     <div class="item-info">
       <h3>${item.nome}</h3>
       <p>${item.descricao}</p>
@@ -251,14 +334,16 @@ function filtrarCategoria(categoria) {
   event.target.classList.add('active');
   
   // Reload menu with filter
-  fetch('/api/cardapio')
-    .then(response => response.json())
-    .then(items => {
-      if (categoria) {
-        items = items.filter(item => item.categoria === categoria);
-      }
-      displayMenuItems(items);
-    });
+  if (currentRestauranteId) {
+    fetch(`/api/cardapio/${currentRestauranteId}`)
+      .then(response => response.json())
+      .then(items => {
+        if (categoria) {
+          items = items.filter(item => item.categoria === categoria);
+        }
+        displayMenuItems(items);
+      });
+  }
 }
 
 function finalizarPedido() {
@@ -267,12 +352,13 @@ function finalizarPedido() {
     return;
   }
   
-  // Extract table number from URL (if available)
+  // Extract table number from URL (if available) or use default
   const urlParams = new URLSearchParams(window.location.search);
   const tableNumber = urlParams.get('table') || '1'; // Default to table 1 if not specified
   
   const pedido = {
     mesaNumero: tableNumber,
+    restauranteId: currentRestauranteId,
     itens: cart,
     clienteNome: currentClientName
   };
@@ -305,7 +391,8 @@ function finalizarPedido() {
 
 function voltarAoInicio() {
   document.getElementById('menu-section').classList.remove('active');
-  document.getElementById('login-section').classList.add('active');
+  document.getElementById('login-section').classList.remove('active');
+  document.getElementById('restaurante-section').classList.add('active');
   
   // Clear cart
   cart = [];
@@ -351,10 +438,10 @@ function updateLanguageDisplay() {
   // Update static text that can be easily identified
   const titleElement = document.querySelector('title');
   if (titleElement) {
-    titleElement.textContent = `${t.digitalMenu} - Restaurante Estradeiro`;
+    titleElement.textContent = `${t.digitalMenu} - Sistema de Restaurante`;
   }
   
-  // Update any other text as needed
+  // Update other texts as needed
   // This would typically involve adding data attributes to HTML elements to identify translatable text
 }
 
