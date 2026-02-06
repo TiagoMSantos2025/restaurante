@@ -1,7 +1,7 @@
 {
-  "name": "restaurante-extradeiro",
+  "name": "sistema-restaurante-generico",
   "version": "1.0.0",
-  "description": "Restaurant Management System with QR-based digital menu",
+  "description": "Generic Restaurant Management System with QR-based digital menu",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

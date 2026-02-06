@@ -1,6 +1,6 @@
-# Restaurante Estradeiro - Sistema de Gestão de Restaurantes
+# Sistema de Gestão de Restaurantes - Cardápio Digital
 
-Sistema completo de gestão de restaurantes com cardápio digital baseado em QR code, integração entre cliente, balcão e cozinha.
+Sistema completo de gestão de restaurantes com cardápio digital baseado em QR code, integração entre cliente, balcão e cozinha, projetado para ser utilizado por qualquer restaurante.
 
 ## Funcionalidades
 

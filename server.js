@@ -29,7 +29,7 @@ app.use(express.static('public'));
 app.use(multer().none());
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/restaurante_extradeiro', {
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sistema_restaurante', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
@@ -46,7 +46,7 @@ const fidelidadeService = require('./services/fidelidadeService');
 const i18nService = require('./services/i18nService');
 
 // JWT Secret
-const JWT_SECRET = process.env.JWT_SECRET || 'restaurante_extradeiro_secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'sistema_restaurante_generico_secret';
 
 // Authentication Middleware
 const authenticateToken = (req, res, next) => {
@@ -511,7 +511,7 @@ app.get('/api/backup', authenticateToken, authorizeRoles('admin'), async (req, r
     });
 
     output.on('close', () => {
-      res.download(zipPath, `restaurante_backup_${timestamp}.zip`, (err) => {
+      res.download(zipPath, `sistema_restaurante_backup_${timestamp}.zip`, (err) => {
         if (err) {
           console.error('Error sending backup file:', err);
         }

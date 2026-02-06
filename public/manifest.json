@@ -1,7 +1,7 @@
 {
-  "name": "Restaurante Estradeiro - Cardápio Digital",
-  "short_name": "Cardápio Estradeiro",
-  "description": "Sistema de cardápio digital com QR code para o Restaurante Estradeiro",
+  "name": "Sistema de Restaurante - Cardápio Digital",
+  "short_name": "Cardápio Digital",
+  "description": "Sistema de cardápio digital com QR code para restaurantes",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
