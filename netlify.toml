@@ -1,0 +1,50 @@
+[build]
+  publish = "public"
+  command = "echo 'Building static site'"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/server"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin-dashboard"
+  to = "/admin-dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/public"
+  to = "/public-access.html"
+  status = 200
+
+[[redirects]]
+  from = "/register-name"
+  to = "/register-name.html"
+  status = 200
+
+[[redirects]]
+  from = "/orders"
+  to = "/orders.html"
+  status = 200
+
+[[redirects]]
+  from = "/counter"
+  to = "/counter.html"
+  status = 200
+
+[[redirects]]
+  from = "/kitchen"
+  to = "/kitchen.html"
+  status = 200
