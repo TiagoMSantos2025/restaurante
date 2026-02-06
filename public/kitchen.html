@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cozinha - Restaurante Estradeiro</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Login Section -->
+        <div id="login-section" class="section active">
+            <div class="container">
+                <h1>Acesso à Cozinha</h1>
+                <div class="login-form">
+                    <input type="email" id="kitchen-email" placeholder="Email" required>
+                    <input type="password" id="kitchen-password" placeholder="Senha" required>
+                    <button onclick="loginKitchen()">Entrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kitchen Dashboard -->
+        <div id="kitchen-dashboard" class="section">
+            <div class="container">
+                <header>
+                    <div class="header-top">
+                        <h1>Cozinha - Controle de Pedidos</h1>
+                        <div class="user-info">
+                            <span id="kitchen-user-name"></span>
+                            <button onclick="logout()">Sair</button>
+                        </div>
+                    </div>
+                    <div class="lang-selector">
+                        <select id="lang-select" onchange="changeLanguage()">
+                            <option value="pt">PT</option>
+                            <option value="en">EN</option>
+                            <option value="es">ES</option>
+                        </select>
+                    </div>
+                </header>
+
+                <div class="kitchen-content">
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <h3>Pedidos em Preparo</h3>
+                            <p id="pedidos-em-preparo">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Pedidos Prontos</h3>
+                            <p id="pedidos-prontos">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Média de Tempo</h3>
+                            <p id="tempo-medio">0 min</p>
+                        </div>
+                    </div>
+
+                    <div class="pedidos-container">
+                        <h2>Pedidos Confirmados</h2>
+                        <div id="pedidos-confirmados" class="pedidos-lista">
+                            <!-- Pedidos confirmados serão exibidos aqui -->
+                        </div>
+                    </div>
+
+                    <div class="pedidos-container">
+                        <h2>Pedidos em Preparo</h2>
+                        <div id="pedidos-em-preparo-lista" class="pedidos-lista">
+                            <!-- Pedidos em preparo serão exibidos aqui -->
+                        </div>
+                    </div>
+
+                    <div class="pedidos-container">
+                        <h2>Pedidos Prontos</h2>
+                        <div id="pedidos-prontos-lista" class="pedidos-lista">
+                            <!-- Pedidos prontos serão exibidos aqui -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="kitchen.js"></script>
+</body>
+</html>

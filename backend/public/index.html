@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio Digital</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Seleção de idioma -->
+        <div id="selecao-idioma" class="selecao-idioma">
+            <select id="idioma-select" onchange="mudarIdioma()">
+                <option value="pt">Português</option>
+                <option value="en">English</option>
+                <option value="es">Español</option>
+            </select>
+        </div>
+        
+        <!-- Tela de entrada - para digitar o número da mesa -->
+        <div id="tela-entrada" class="tela">
+            <h1 id="titulo-entrada">Bem-vindo ao Cardápio Digital</h1>
+            <div class="entrada-mesa">
+                <label for="numero-mesa" id="label-numero-mesa">Digite o número da sua mesa:</label>
+                <input type="text" id="numero-mesa" placeholder="Ex: 01, 02, 03...">
+                <button onclick="entrarNaMesa()" id="botao-entrar">Entrar</button>
+            </div>
+        </div>
+
+        <!-- Tela do cardápio -->
+        <div id="tela-cardapio" class="tela oculto">
+            <header>
+                <h1 id="titulo-cardapio">Cardápio - Mesa <span id="numero-mesa-display"></span></h1>
+                <div class="info-cliente">
+                    <input type="text" id="nome-cliente" placeholder="Seu nome" id="placeholder-nome">
+                </div>
+            </header>
+            
+            <div class="categorias">
+                <button class="categoria-btn ativo" onclick="mostrarCategoria('todos')" id="btn-todos">Todos</button>
+                <button class="categoria-btn" onclick="mostrarCategoria('lanches')" id="btn-lanches">Lanches</button>
+                <button class="categoria-btn" onclick="mostrarCategoria('pizzas')" id="btn-pizzas">Pizzas</button>
+                <button class="categoria-btn" onclick="mostrarCategoria('bebidas')" id="btn-bebidas">Bebidas</button>
+                <button class="categoria-btn" onclick="mostrarCategoria('sobremesas')" id="btn-sobremesas">Sobremesas</button>
+            </div>
+            
+            <div class="itens-cardapio" id="itens-cardapio">
+                <!-- Os itens serão carregados aqui dinamicamente -->
+            </div>
+            
+            <div class="carrinho">
+                <h2 id="titulo-carrinho">Seu Pedido</h2>
+                <div id="itens-pedido">
+                    <!-- Itens do pedido aparecerão aqui -->
+                </div>
+                <div class="total-pedido">
+                    <strong id="texto-total">Total: R$ <span id="valor-total">0,00</span></strong>
+                </div>
+                <button class="btn-finalizar" onclick="finalizarPedido()" id="botao-finalizar">Finalizar Pedido</button>
+            </div>
+        </div>
+        
+        <!-- Tela de confirmação de pedido -->
+        <div id="tela-confirmacao" class="tela oculto">
+            <h1 id="titulo-confirmacao">Pedido Enviado!</h1>
+            <p id="mensagem-confirmacao">Seu pedido foi enviado para a cozinha.</p>
+            <p id="texto-pedido">Número do pedido: <span id="numero-pedido"></span></p>
+            <button onclick="voltarAoCardapio()" id="botao-voltar">Voltar ao Cardápio</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Função para mudar o idioma da interface
+        function mudarIdioma() {
+            const idiomaSelecionado = document.getElementById('idioma-select').value;
+            localStorage.setItem('idioma', idiomaSelecionado);
+            
+            // Recarregar as traduções
+            carregarTraducoes(idiomaSelecionado);
+        }
+        
+        // Função para carregar traduções
+        async function carregarTraducoes(lng = 'pt') {
+            try {
+                const response = await fetch(`/api/translations/${lng}`);
+                const { translations } = await response.json();
+                
+                // Atualizar os textos na interface
+                document.getElementById('titulo-entrada').textContent = translations.welcome;
+                document.getElementById('label-numero-mesa').textContent = translations.enter_table_number;
+                document.getElementById('botao-entrar').textContent = translations.menu;
+                document.getElementById('titulo-cardapio').innerHTML = `${translations.menu} - ${translations.table_number} <span id="numero-mesa-display"></span>`;
+                document.getElementById('placeholder-nome').placeholder = translations.customer_name;
+                document.getElementById('btn-todos').textContent = translations.all;
+                document.getElementById('btn-lanches').textContent = translations.snacks;
+                document.getElementById('btn-pizzas').textContent = translations.pizzas;
+                document.getElementById('btn-bebidas').textContent = translations.drinks;
+                document.getElementById('btn-sobremesas').textContent = translations.desserts;
+                document.getElementById('titulo-carrinho').textContent = translations.your_order;
+                document.getElementById('texto-total').innerHTML = `${translations.total}: R$ <span id="valor-total">0,00</span>`;
+                document.getElementById('botao-finalizar').textContent = translations.place_order;
+                document.getElementById('titulo-confirmacao').textContent = translations.order_sent;
+                document.getElementById('mensagem-confirmacao').textContent = translations.order_confirmed;
+                document.getElementById('texto-pedido').textContent = `${translations.order_placed_successfully}: <span id="numero-pedido"></span>`;
+                document.getElementById('botao-voltar').textContent = translations.back_to_menu;
+            } catch (error) {
+                console.error('Erro ao carregar traduções:', error);
+            }
+        }
+        
+        // Carregar o idioma salvo ou padrão
+        document.addEventListener('DOMContentLoaded', () => {
+            const idiomaSalvo = localStorage.getItem('idioma') || 'pt';
+            document.getElementById('idioma-select').value = idiomaSalvo;
+            carregarTraducoes(idiomaSalvo);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio Digital - Restaurante Estradeiro</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="/manifest.json">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Login Section -->
+        <div id="login-section" class="section active">
+            <div class="container">
+                <h1>Bem-vindo ao Restaurante Estradeiro</h1>
+                <div class="login-form">
+                    <input type="text" id="cliente-nome" placeholder="Seu nome" required>
+                    <button onclick="iniciarPedido()">Iniciar Pedido</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Section -->
+        <div id="menu-section" class="section">
+            <div class="container">
+                <header>
+                    <div class="header-top">
+                        <button id="voltar-btn" onclick="voltarAoInicio()">&larr;</button>
+                        <h1>Cardápio Digital</h1>
+                        <div class="lang-selector">
+                            <select id="lang-select" onchange="changeLanguage()">
+                                <option value="pt">PT</option>
+                                <option value="en">EN</option>
+                                <option value="es">ES</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="user-info">
+                        <span id="nome-cliente"></span>
+                        <div class="loyalty-points">
+                            <span id="points-display">Pontos: 0</span>
+                            <span id="level-display">Nível: Bronze</span>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="categoria-filtro">
+                    <button class="filtro-btn active" onclick="filtrarCategoria('')">Todos</button>
+                    <button class="filtro-btn" onclick="filtrarCategoria('Lanches')">Lanches</button>
+                    <button class="filtro-btn" onclick="filtrarCategoria('Pizzas')">Pizzas</button>
+                    <button class="filtro-btn" onclick="filtrarCategoria('Bebidas')">Bebidas</button>
+                </div>
+
+                <div id="cardapio-itens" class="cardapio-grid">
+                    <!-- Itens do cardápio serão carregados aqui -->
+                </div>
+
+                <div class="carrinho-container">
+                    <div class="carrinho-header">
+                        <h3>Carrinho (<span id="carrinho-count">0</span>)</h3>
+                        <div class="total-carrinho">Total: R$ <span id="carrinho-total">0.00</span></div>
+                    </div>
+                    <div id="carrinho-itens" class="carrinho-itens-lista">
+                        <!-- Itens do carrinho serão exibidos aqui -->
+                    </div>
+                    <button id="finalizar-pedido-btn" onclick="finalizarPedido()" disabled>
+                        Finalizar Pedido
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmação de Pedido -->
+        <div id="confirmacao-section" class="section">
+            <div class="container">
+                <h1>Pedido Confirmado!</h1>
+                <p id="mensagem-confirmacao">Seu pedido foi enviado à cozinha. O número do seu pedido é <strong>#<span id="numero-pedido"></span></strong>.</p>
+                <p>Acompanhe o status do seu pedido na tela.</p>
+                <button onclick="voltarAoMenu()">Fazer Outro Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

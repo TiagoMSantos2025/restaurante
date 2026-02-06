@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balcão - Restaurante Estradeiro</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Login Section -->
+        <div id="login-section" class="section active">
+            <div class="container">
+                <h1>Acesso ao Balcão</h1>
+                <div class="login-form">
+                    <input type="email" id="counter-email" placeholder="Email" required>
+                    <input type="password" id="counter-password" placeholder="Senha" required>
+                    <button onclick="loginCounter()">Entrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Counter Dashboard -->
+        <div id="counter-dashboard" class="section">
+            <div class="container">
+                <header>
+                    <div class="header-top">
+                        <h1>Balcão - Controle de Pedidos</h1>
+                        <div class="user-info">
+                            <span id="counter-user-name"></span>
+                            <button onclick="logout()">Sair</button>
+                        </div>
+                    </div>
+                    <div class="lang-selector">
+                        <select id="lang-select" onchange="changeLanguage()">
+                            <option value="pt">PT</option>
+                            <option value="en">EN</option>
+                            <option value="es">ES</option>
+                        </select>
+                    </div>
+                </header>
+
+                <div class="dashboard-content">
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <h3>Total Pedidos Hoje</h3>
+                            <p id="total-pedidos-hoje">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Pedidos Pendentes</h3>
+                            <p id="pedidos-pendentes">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Faturamento Hoje</h3>
+                            <p id="faturamento-hoje">R$ 0,00</p>
+                        </div>
+                    </div>
+
+                    <div class="pedidos-container">
+                        <h2>Pedidos Recebidos</h2>
+                        <div id="pedidos-recebidos" class="pedidos-lista">
+                            <!-- Pedidos recebidos serão exibidos aqui -->
+                        </div>
+                    </div>
+
+                    <div class="pedidos-container">
+                        <h2>Pedidos Confirmados</h2>
+                        <div id="pedidos-confirmados" class="pedidos-lista">
+                            <!-- Pedidos confirmados serão exibidos aqui -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="counter.js"></script>
+</body>
+</html>
