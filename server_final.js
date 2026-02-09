@@ -6,6 +6,8 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const QRCode = require('qrcode');
 const sqlite3 = require('sqlite3').verbose();
+const session = require('express-session');
+const bcrypt = require('bcrypt');
 
 const app = express();
 const server = http.createServer(app);
@@ -16,6 +18,17 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Configuração de sessão
+app.use(session({
+    secret: 'restaurante-secreto-2024',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+        secure: false, // true se estiver usando HTTPS
+        maxAge: 24 * 60 * 60 * 1000 // 24 horas
+    }
+}));
 
 // Configurar EJS como engine de template
 app.set('view engine', 'ejs');
@@ -148,8 +161,73 @@ function initializeDatabase() {
         const num = i.toString().padStart(2, '0');
         db.run(`INSERT OR IGNORE INTO mesas (numero, capacidade) VALUES ('${num}', 4)`);
       }
+      
+      // Inserir usuário administrador padrão
+      db.run(`INSERT OR IGNORE INTO funcionarios (nome, email, senha, nivel_acesso) 
+              VALUES ('Administrador', 'admin@restaurante.com', 'admin123', 'admin')`);
     });
   });
+}
+
+// Rotas de Autenticação
+app.get('/login', (req, res) => {
+  // Se já estiver logado, redireciona para admin
+  if (req.session.userId) {
+    return res.redirect('/admin');
+  }
+  res.render('login');
+});
+
+app.post('/login', async (req, res) => {
+  const { email, senha } = req.body;
+  
+  try {
+    // Buscar usuário no banco de dados
+    const sql = 'SELECT * FROM funcionarios WHERE email = ? AND ativo = 1';
+    db.get(sql, [email], async (err, user) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Erro no servidor' });
+      }
+      
+      if (!user) {
+        return res.status(401).json({ error: 'Credenciais inválidas' });
+      }
+      
+      // Verificar senha (assumindo que a senha está em texto plano por enquanto)
+      // Em produção, use bcrypt para hash de senhas
+      if (senha !== user.senha) {
+        return res.status(401).json({ error: 'Credenciais inválidas' });
+      }
+      
+      // Criar sessão
+      req.session.userId = user.id;
+      req.session.userLevel = user.nivel_acesso;
+      req.session.userName = user.nome;
+      
+      res.json({ success: true, redirect: '/admin' });
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro no servidor' });
+  }
+});
+
+app.post('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error(err);
+    }
+    res.redirect('/login');
+  });
+});
+
+// Middleware de autenticação
+function requireAuth(req, res, next) {
+  if (!req.session.userId) {
+    return res.redirect('/login');
+  }
+  next();
 }
 
 // Rotas
@@ -168,9 +246,12 @@ app.get('/kitchen', (req, res) => {
   res.render('kitchen-dashboard');
 });
 
-// Rota para o painel do caixa
-app.get('/admin', (req, res) => {
-  res.render('admin-dashboard');
+// Rota para o painel do caixa (protegida por autenticação)
+app.get('/admin', requireAuth, (req, res) => {
+  res.render('admin-dashboard-modern', { 
+    userName: req.session.userName,
+    userLevel: req.session.userLevel 
+  });
 });
 
 // Rota para cadastro de cliente
