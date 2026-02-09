@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Cliente</title>
+    <link rel="stylesheet" href="/css/client.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cadastro de Cliente</h1>
+        </header>
+        
+        <main>
+            <form id="customer-form">
+                <div class="form-group">
+                    <label for="nome">Nome Completo:</label>
+                    <input type="text" id="nome" name="nome" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="telefone">Telefone:</label>
+                    <input type="tel" id="telefone" name="telefone" required>
+                </div>
+                
+                <button type="submit" class="btn-primary">Cadastrar</button>
+            </form>
+            
+            <div id="message" class="message"></div>
+        </main>
+    </div>
+
+    <script>
+        document.getElementById('customer-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                nome: document.getElementById('nome').value,
+                email: document.getElementById('email').value,
+                telefone: document.getElementById('telefone').value
+            };
+            
+            try {
+                const response = await fetch('/api/clientes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('message').innerHTML = '<p style="color: green;">Cadastro realizado com sucesso!</p>';
+                    document.getElementById('customer-form').reset();
+                    
+                    // Salvar ID do cliente no localStorage para futuras referências
+                    localStorage.setItem('customerId', result.id);
+                } else {
+                    document.getElementById('message').innerHTML = '<p style="color: red;">Erro no cadastro: ' + result.error + '</p>';
+                }
+            } catch (error) {
+                document.getElementById('message').innerHTML = '<p style="color: red;">Erro de conexão: ' + error.message + '</p>';
+            }
+        });
+    </script>
+</body>
+</html>

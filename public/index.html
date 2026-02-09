@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Restaurante - QR Code Ordering</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .dashboard-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .dashboard-link {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 20px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            transition: transform 0.3s, background 0.3s;
+            min-width: 200px;
+        }
+
+        .dashboard-link:hover {
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.3);
+        }
+
+        .qr-generator {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-top: 40px;
+            color: #2c3e50;
+        }
+
+        .qr-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        input, button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        input {
+            flex: 1;
+            max-width: 150px;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            .dashboard-links {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Restaurante</h1>
+        <p class="subtitle">Solução completa de pedidos via QR Code com painéis de controle</p>
+        
+        <div class="dashboard-links">
+            <a href="/kitchen" class="dashboard-link">Painel da Cozinha</a>
+            <a href="/admin" class="dashboard-link">Painel do Administrador</a>
+            <a href="/controle-estoque" class="dashboard-link">Controle de Estoque</a>
+            <a href="/cadastro-cliente" class="dashboard-link">Cadastro Cliente</a>
+            <a href="/avaliar-pedido" class="dashboard-link">Avaliar Pedido</a>
+            <a href="/reservas" class="dashboard-link">Reservas Online</a>
+        </div>
+        
+        <div class="qr-generator">
+            <h2>Gerador de QR Code para Mesas</h2>
+            <p>Insira o número da mesa para gerar seu QR Code</p>
+            <div class="qr-controls">
+                <input type="text" id="tableNumber" placeholder="Número da mesa" value="01">
+                <button onclick="generateQR()">Gerar QR Code</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generateQR() {
+            const tableNumber = document.getElementById('tableNumber').value || '01';
+            window.open(`/qrcode/${tableNumber}`, '_blank');
+        }
+
+        // Permitir pressionar Enter no campo de mesa
+        document.getElementById('tableNumber').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateQR();
+            }
+        });
+    </script>
+</body>
+</html>

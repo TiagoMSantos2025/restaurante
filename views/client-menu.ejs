@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio - Mesa <%= tableNumber %></title>
+    <link rel="stylesheet" href="/css/client.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cardápio - Mesa <%= tableNumber %></h1>
+            <div class="cart-info">
+                <span id="cart-count">0</span> itens
+                <span class="cart-total">R$ <span id="cart-total">0.00</span></span>
+            </div>
+        </header>
+
+        <nav class="category-nav">
+            <button class="category-btn active" data-category="all">Todos</button>
+            <button class="category-btn" data-category="1">Entradas</button>
+            <button class="category-btn" data-category="2">Pratos Principais</button>
+            <button class="category-btn" data-category="3">Bebidas</button>
+            <button class="category-btn" data-category="4">Sobremesas</button>
+        </nav>
+
+        <main class="menu-grid" id="menu-items">
+            <!-- Os itens do cardápio serão carregados aqui -->
+        </main>
+
+        <section class="cart-section">
+            <h2>Carrinho</h2>
+            <div class="cart-items" id="cart-items">
+                <!-- Itens do carrinho aparecem aqui -->
+            </div>
+            <div class="cart-actions">
+                <button id="clear-cart" class="btn-secondary">Limpar Carrinho</button>
+                <button id="send-order" class="btn-primary">Enviar Pedido</button>
+            </div>
+        </section>
+    </div>
+
+    <script src="/js/client.js"></script>
+</body>
+</html>

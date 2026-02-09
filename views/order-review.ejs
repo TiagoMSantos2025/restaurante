@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliar Pedido</title>
+    <link rel="stylesheet" href="/css/client.css">
+    <style>
+        .rating {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .star {
+            font-size: 2em;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .star.active, .star:hover {
+            color: #ffc107;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .message {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Avaliar Pedido</h1>
+        </header>
+        
+        <main>
+            <form id="review-form">
+                <div class="form-group">
+                    <label for="pedido-id">ID do Pedido:</label>
+                    <input type="number" id="pedido-id" name="pedido_id" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Avaliação Geral do Pedido:</label>
+                    <div class="rating" id="pedido-rating">
+                        <span class="star" data-value="1">★</span>
+                        <span class="star" data-value="2">★</span>
+                        <span class="star" data-value="3">★</span>
+                        <span class="star" data-value="4">★</span>
+                        <span class="star" data-value="5">★</span>
+                    </div>
+                    <input type="hidden" id="pedido-avaliacao" name="avaliacao" value="0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="comentario">Comentário:</label>
+                    <textarea id="comentario" name="comentario" placeholder="Deixe seu comentário sobre o pedido..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn-primary">Enviar Avaliação</button>
+            </form>
+            
+            <div id="message" class="message" style="display: none;"></div>
+        </main>
+    </div>
+
+    <script>
+        // Sistema de estrelas para avaliação
+        const stars = document.querySelectorAll('#pedido-rating .star');
+        const ratingInput = document.getElementById('pedido-avaliacao');
+        
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const value = parseInt(star.getAttribute('data-value'));
+                ratingInput.value = value;
+                
+                stars.forEach((s, index) => {
+                    if (index < value) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+            });
+            
+            star.addEventListener('mouseover', () => {
+                const value = parseInt(star.getAttribute('data-value'));
+                
+                stars.forEach((s, index) => {
+                    if (index < value) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+            });
+            
+            star.addEventListener('mouseout', () => {
+                const currentValue = parseInt(ratingInput.value);
+                
+                stars.forEach((s, index) => {
+                    if (index < currentValue) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+            });
+        });
+        
+        document.getElementById('review-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                pedido_id: document.getElementById('pedido-id').value,
+                avaliacao: document.getElementById('pedido-avaliacao').value,
+                comentario: document.getElementById('comentario').value
+            };
+            
+            if (formData.avaliacao == 0) {
+                showMessage('Por favor, selecione uma avaliação.', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/avaliar-pedido', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('Avaliação enviada com sucesso!', 'success');
+                    document.getElementById('review-form').reset();
+                    ratingInput.value = 0;
+                    stars.forEach(s => s.classList.remove('active'));
+                } else {
+                    showMessage('Erro ao enviar avaliação: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Erro de conexão: ' + error.message, 'error');
+            }
+        });
+        
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
+            messageDiv.style.backgroundColor = type === 'success' ? '#d4edda' : '#f8d7da';
+            messageDiv.style.color = type === 'success' ? '#155724' : '#721c24';
+            messageDiv.style.borderColor = type === 'success' ? '#c3e6cb' : '#f5c6cb';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

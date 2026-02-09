@@ -1,0 +1,29 @@
+{
+  "name": "Sistema de Restaurante com QR Code",
+  "description": "Sistema completo para restaurantes com pedidos via QR Code e painéis de controle",
+  "repository": "https://github.com/seu-usuario/sistema-restaurante",
+  "logo": "https://node-js-sample.herokuapp.com/node.png",
+  "keywords": ["node", "express", "restaurant", "qr-code", "ordering", "kds"],
+  "image": "heroku/nodejs",
+  "env": {
+    "NODE_ENV": {
+      "description": "Environment type",
+      "value": "production"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:hobby-dev"
+    }
+  ],
+  "scripts": {
+    "postdeploy": "npm install"
+  },
+  "environments": {
+    "test": {
+      "scripts": {
+        "test": "npm test"
+      }
+    }
+  }
+}

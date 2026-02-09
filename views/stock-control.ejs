@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Estoque</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <style>
+        .stock-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        .low-stock {
+            background-color: #f8d7da !important;
+            border: 1px solid #f5c6cb !important;
+        }
+        
+        .stock-warning {
+            color: #721c24;
+            background-color: #f8d7da;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Controle de Estoque</h1>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Produtos com Baixo Estoque:</span>
+                    <span class="stat-value" id="low-stock-count">0</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="admin-main">
+            <section class="stock-form">
+                <h2>Atualizar Estoque</h2>
+                <form id="stock-update-form">
+                    <div class="form-group">
+                        <label for="produto-id">Produto:</label>
+                        <select id="produto-id" name="produto_id" required>
+                            <option value="">Selecione um produto...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quantidade">Nova Quantidade:</label>
+                        <input type="number" id="quantidade" name="quantidade" min="0" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-success">Atualizar Estoque</button>
+                </form>
+            </section>
+            
+            <section>
+                <h2>Estoque Atual</h2>
+                <div class="tables-grid" id="stock-list">
+                    <!-- Estoque será carregado aqui -->
+                </div>
+            </section>
+            
+            <section style="margin-top: 30px;">
+                <h2>Produtos com Baixo Estoque</h2>
+                <div class="tables-grid" id="low-stock-list">
+                    <!-- Produtos com baixo estoque serão carregados aqui -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Carregar produtos para o select
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/products');
+                const products = await response.json();
+                
+                const select = document.getElementById('produto-id');
+                select.innerHTML = '<option value="">Selecione um produto...</option>';
+                
+                products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.id;
+                    option.textContent = `${product.nome} (${product.estoque_atual || product.estoque || 0} un)`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar produtos:', error);
+            }
+        }
+        
+        // Carregar estoque atual
+        async function loadStock() {
+            try {
+                const response = await fetch('/api/products');
+                const products = await response.json();
+                
+                const stockList = document.getElementById('stock-list');
+                stockList.innerHTML = '';
+                
+                products.forEach(product => {
+                    const stockItem = document.createElement('div');
+                    const currentStock = product.estoque_atual !== undefined ? product.estoque_atual : product.estoque;
+                    const isLow = currentStock <= 10; // Considerando 10 como estoque mínimo
+                    
+                    stockItem.className = `table-item ${isLow ? 'low-stock' : 'available'}`;
+                    stockItem.innerHTML = `
+                        <div><strong>${product.nome}</strong></div>
+                        <div>Qtd: ${currentStock || 0}</div>
+                        <div>Cat: ${product.categoria_nome || 'N/A'}</div>
+                        ${isLow ? '<div class="stock-warning">Baixo Estoque!</div>' : ''}
+                    `;
+                    stockList.appendChild(stockItem);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar estoque:', error);
+            }
+        }
+        
+        // Carregar produtos com baixo estoque
+        async function loadLowStock() {
+            try {
+                const response = await fetch('/api/estoque/baixo');
+                const lowStockItems = await response.json();
+                
+                const lowStockList = document.getElementById('low-stock-list');
+                lowStockList.innerHTML = '';
+                
+                document.getElementById('low-stock-count').textContent = lowStockItems.length;
+                
+                if (lowStockItems.length === 0) {
+                    lowStockList.innerHTML = '<p>Nenhum produto com baixo estoque</p>';
+                    return;
+                }
+                
+                lowStockItems.forEach(item => {
+                    const lowStockItem = document.createElement('div');
+                    lowStockItem.className = 'table-item occupied';
+                    lowStockItem.innerHTML = `
+                        <div><strong>${item.nome}</strong></div>
+                        <div>Atual: ${item.quantidade_atual}</div>
+                        <div>Mínimo: ${item.quantidade_minima}</div>
+                    `;
+                    lowStockList.appendChild(lowStockItem);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar estoque baixo:', error);
+            }
+        }
+        
+        // Atualizar estoque
+        document.getElementById('stock-update-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                produto_id: document.getElementById('produto-id').value,
+                quantidade: document.getElementById('quantidade').value
+            };
+            
+            try {
+                const response = await fetch('/api/estoque/atualizar', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Estoque atualizado com sucesso!');
+                    document.getElementById('stock-update-form').reset();
+                    loadStock();
+                    loadLowStock();
+                    loadProducts();
+                } else {
+                    alert('Erro ao atualizar estoque: ' + (result.error || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                alert('Erro de conexão: ' + error.message);
+            }
+        });
+        
+        // Carregar tudo quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProducts();
+            loadStock();
+            loadLowStock();
+        });
+    </script>
+</body>
+</html>

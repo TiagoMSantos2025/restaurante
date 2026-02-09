@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "features": {
+    "issues": true,
+    "wiki": true,
+    "downloads": true
+  }
+}

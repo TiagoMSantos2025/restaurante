@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel da Cozinha</title>
+    <link rel="stylesheet" href="/css/kitchen.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Painel da Cozinha</h1>
+            <div class="status-indicators">
+                <div class="status-item pending">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Pendentes: <span id="pending-count">0</span></span>
+                </div>
+                <div class="status-item preparing">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Em Preparo: <span id="preparing-count">0</span></span>
+                </div>
+            </div>
+        </header>
+
+        <main class="orders-container" id="orders-container">
+            <!-- Pedidos aparecem aqui -->
+        </main>
+    </div>
+
+    <script src="/js/kitchen.js"></script>
+</body>
+</html>

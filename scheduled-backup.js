@@ -1,0 +1,17 @@
+const cron = require('node-cron');
+const { createBackup } = require('./backup-db');
+
+// Agendar backup diário às 2h da manhã
+cron.schedule('0 2 * * *', () => {
+    console.log('Iniciando backup automático programado...');
+    createBackup();
+}, {
+    scheduled: true,
+    timezone: "America/Sao_Paulo"
+});
+
+console.log('Serviço de backup automático iniciado com sucesso!');
+console.log('Backup programado para executar diariamente às 02:00 (Horário de Brasília)');
+
+// Permitir que o script continue rodando
+process.stdin.resume();

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Administrador</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Painel do Administrador</h1>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Pedidos Hoje:</span>
+                    <span class="stat-value" id="today-orders">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Receita Hoje:</span>
+                    <span class="stat-value" id="today-revenue">R$ 0,00</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="admin-main">
+            <section class="tables-section">
+                <h2>Mesas</h2>
+                <div class="tables-grid" id="tables-grid">
+                    <!-- Mesas aparecem aqui -->
+                </div>
+            </section>
+
+            <section class="orders-section">
+                <h2>Pedidos da Mesa <span id="current-table">-</span></h2>
+                <div class="table-orders" id="table-orders">
+                    <!-- Pedidos da mesa selecionada aparecem aqui -->
+                </div>
+                <div class="order-actions">
+                    <button id="finalize-order" class="btn-success">Finalizar Pedido</button>
+                    <button id="print-receipt" class="btn-print">Imprimir Comanda</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>
