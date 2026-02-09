@@ -956,11 +956,14 @@
                     document.body.appendChild(tempDiv.firstChild);
                     
                     // Adicionar evento de clique para fechar o modal quando clicar fora
-                    document.getElementById('tableModal').addEventListener('click', function(event) {
-                        if (event.target === this) {
-                            closeTableModal();
-                        }
-                    });
+                    const modalElement = document.getElementById('tableModal');
+                    if (modalElement) {
+                        modalElement.addEventListener('click', function(event) {
+                            if (event.target === this) {
+                                closeTableModal();
+                            }
+                        });
+                    }
                 })
                 .catch(error => {
                     console.error('Erro ao obter pedidos da mesa:', error);
@@ -1006,11 +1009,14 @@
                     document.body.appendChild(tempDiv.firstChild);
                     
                     // Adicionar evento de clique para fechar o modal quando clicar fora
-                    document.getElementById('tableModal').addEventListener('click', function(event) {
-                        if (event.target === this) {
-                            closeTableModal();
-                        }
-                    });
+                    const modalElement = document.getElementById('tableModal');
+                    if (modalElement) {
+                        modalElement.addEventListener('click', function(event) {
+                            if (event.target === this) {
+                                closeTableModal();
+                            }
+                        });
+                    }
                 });
         }
         
