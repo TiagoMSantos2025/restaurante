@@ -3,153 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Restaurante - QR Code Ordering</title>
+    <title>Sistema de Restaurante Completo</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
         }
-
+        
         body {
-            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            text-align: center;
             padding: 20px;
         }
-
+        
         .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
             max-width: 800px;
             width: 100%;
+            text-align: center;
         }
-
-        h1 {
-            font-size: 3em;
+        
+        .logo {
+            font-size: 2.5em;
+            color: #333;
             margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-
+        
+        .title {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
         .subtitle {
             font-size: 1.2em;
+            color: #666;
             margin-bottom: 40px;
-            opacity: 0.9;
+            line-height: 1.6;
         }
-
-        .dashboard-links {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+        
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
-            margin-top: 30px;
+            margin-bottom: 40px;
         }
-
-        .dashboard-link {
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            padding: 20px;
+        
+        .link-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
             text-decoration: none;
-            color: white;
-            font-weight: bold;
-            transition: transform 0.3s, background 0.3s;
-            min-width: 200px;
-        }
-
-        .dashboard-link:hover {
-            transform: translateY(-5px);
-            background: rgba(255,255,255,0.3);
-        }
-
-        .qr-generator {
-            background: white;
-            border-radius: 10px;
-            padding: 30px;
-            margin-top: 40px;
-            color: #2c3e50;
-        }
-
-        .qr-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        input, button {
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-        }
-
-        input {
-            flex: 1;
-            max-width: 150px;
-        }
-
-        button {
-            background: #3498db;
-            color: white;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             cursor: pointer;
         }
-
-        button:hover {
-            background: #2980b9;
+        
+        .link-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
         }
-
+        
+        .link-card h3 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+        
+        .link-card p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .special-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        
+        .qr-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .qr-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+        
+        .qr-input input {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 100px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .btn-qr {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .btn-kitchen {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: #333;
+        }
+        
+        .btn-admin {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+        
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2em;
+            .container {
+                padding: 20px;
+                margin: 10px;
             }
             
-            .dashboard-links {
-                flex-direction: column;
-                align-items: center;
+            .title {
+                font-size: 1.5em;
+            }
+            
+            .links-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Sistema de Restaurante</h1>
-        <p class="subtitle">Solução completa de pedidos via QR Code com painéis de controle</p>
+        <div class="logo">🍽️</div>
+        <h1 class="title">Sistema de Restaurante Completo</h1>
+        <p class="subtitle">Sistema integrado de gerenciamento para restaurantes com QR Code, painel de cozinha e administração</p>
         
-        <div class="dashboard-links">
-            <a href="/kitchen" class="dashboard-link">Painel da Cozinha</a>
-            <a href="/admin" class="dashboard-link">Painel do Administrador</a>
-            <a href="/controle-estoque" class="dashboard-link">Controle de Estoque</a>
-            <a href="/cadastro-cliente" class="dashboard-link">Cadastro Cliente</a>
-            <a href="/avaliar-pedido" class="dashboard-link">Avaliar Pedido</a>
-            <a href="/reservas" class="dashboard-link">Reservas Online</a>
+        <div class="links-grid">
+            <a href="/menu?mesa=01" class="link-card">
+                <h3>📱 Cardápio Digital</h3>
+                <p>Faça pedidos via QR Code</p>
+            </a>
+            
+            <a href="/kitchen" class="link-card btn-kitchen">
+                <h3>👨‍🍳 Painel da Cozinha</h3>
+                <p>Controle de pedidos em tempo real</p>
+            </a>
+            
+            <a href="/admin" class="link-card btn-admin">
+                <h3>📊 Administração</h3>
+                <p>Painel de gerenciamento</p>
+            </a>
+            
+            <a href="/controle-estoque" class="link-card">
+                <h3>📦 Controle de Estoque</h3>
+                <p>Gerenciamento de produtos</p>
+            </a>
+            
+            <a href="/reservas" class="link-card">
+                <h3>📅 Reservas</h3>
+                <p>Sistema de agendamento</p>
+            </a>
+            
+            <a href="/cadastro-cliente" class="link-card">
+                <h3>👤 Clientes</h3>
+                <p>Cadastro e avaliações</p>
+            </a>
         </div>
         
-        <div class="qr-generator">
-            <h2>Gerador de QR Code para Mesas</h2>
-            <p>Insira o número da mesa para gerar seu QR Code</p>
-            <div class="qr-controls">
-                <input type="text" id="tableNumber" placeholder="Número da mesa" value="01">
-                <button onclick="generateQR()">Gerar QR Code</button>
+        <div class="special-section">
+            <h3>🔗 Acesso Rápido por Mesa</h3>
+            <div class="qr-section">
+                <p>Digite o número da mesa para acessar o cardápio:</p>
+                <div class="qr-input">
+                    <input type="text" id="tableNumber" placeholder="01" maxlength="2">
+                    <button class="btn" onclick="goToTable()">Acessar Mesa</button>
+                </div>
+                
+                <div style="margin-top: 15px;">
+                    <a href="/qrcode/01" class="btn btn-qr" style="display: inline-block; margin: 5px;">QR Code Mesa 01</a>
+                    <a href="/kitchen" class="btn btn-kitchen" style="display: inline-block; margin: 5px;">Painel Cozinha</a>
+                    <a href="/admin" class="btn btn-admin" style="display: inline-block; margin: 5px;">Admin</a>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        function generateQR() {
-            const tableNumber = document.getElementById('tableNumber').value || '01';
-            window.open(`/qrcode/${tableNumber}`, '_blank');
-        }
-
-        // Permitir pressionar Enter no campo de mesa
-        document.getElementById('tableNumber').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                generateQR();
+        function goToTable() {
+            const tableNumber = document.getElementById('tableNumber').value.padStart(2, '0');
+            if(tableNumber && tableNumber !== '00') {
+                window.location.href = `/menu?mesa=${tableNumber}`;
+            } else {
+                alert('Por favor, digite um número de mesa válido (ex: 1, 2, 3...)');
             }
+        }
+        
+        // Permitir pressionar Enter no input
+        document.getElementById('tableNumber').addEventListener('keypress', function(e) {
+            if(e.key === 'Enter') {
+                goToTable();
+            }
+        });
+        
+        // Foco no input ao carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('tableNumber').focus();
         });
     </script>
 </body>
