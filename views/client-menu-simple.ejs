@@ -241,6 +241,100 @@
             display: none;
         }
         
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .product-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        
+        .product-image {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .product-image img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .no-image {
+            width: 100%;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e9ecef;
+            border-radius: 8px;
+            font-size: 2em;
+        }
+        
+        .product-info {
+            flex-grow: 1;
+        }
+        
+        .product-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+        
+        .product-description {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+        
+        .product-ingredients {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+        
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        
+        .add-to-cart-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
         @media (max-width: 600px) {
             body {
                 padding: 10px;
@@ -256,6 +350,10 @@
             
             .menu-content {
                 padding: 20px 15px;
+            }
+            
+            .products-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -325,12 +423,24 @@
                 html += `
                     <div class="category">
                         <div class="category-title">${categoryName}</div>
-                        ${categoryProducts.map(product => `
-                            <div class="product" onclick="addToCart(${product.id})">
-                                <div class="product-name">${product.nome}</div>
-                                <div class="product-price">R$ ${parseFloat(product.preco).toFixed(2)}</div>
-                            </div>
-                        `).join('')}
+                        <div class="products-grid">
+                            ${categoryProducts.map(product => `
+                                <div class="product-card" onclick="addToCart(${product.id})">
+                                    <div class="product-image">
+                                        ${product.imagem ? `<img src="${product.imagem}" alt="${product.nome}" onerror="this.style.display='none'">` : `<div class="no-image">📷</div>`}
+                                    </div>
+                                    <div class="product-info">
+                                        <div class="product-name">${product.nome}</div>
+                                        <div class="product-description">${product.descricao || ''}</div>
+                                        <div class="product-ingredients">Ingredientes: ${product.ingredientes || 'Não informado'}</div>
+                                        <div class="product-footer">
+                                            <div class="product-price">R$ ${parseFloat(product.preco).toFixed(2)}</div>
+                                            <div class="add-to-cart-btn">+</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
                 `;
             }

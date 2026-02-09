@@ -871,8 +871,263 @@
         }
         
         function manageTable(tableId) {
-            // Aqui você pode abrir um modal com opções para gerenciar a mesa
-            alert('Opções de gerenciamento para a mesa ' + tableId + ' (editar, liberar, etc)');
+            // Obter detalhes da mesa e abrir modal com opções
+            fetch(`/api/tables/${tableId}`)
+                .then(response => response.json())
+                .then(table => {
+                    // Gerar QR Code para a mesa
+                    fetch(`/api/qrcode-link/${table.numero}`)
+                        .then(qrResponse => qrResponse.json())
+                        .then(qrData => {
+                            showTableModal(table, qrData.url);
+                        })
+                        .catch(error => {
+                            console.error('Erro ao gerar QR Code:', error);
+                            showTableModal(table, '');
+                        });
+                })
+                .catch(error => {
+                    console.error('Erro ao obter detalhes da mesa:', error);
+                });
+        }
+        
+        function showTableModal(table, qrCodeUrl) {
+            // Obter pedidos ativos da mesa
+            fetch(`/api/table-orders/${table.id}`)
+                .then(response => response.json())
+                .then(orders => {
+                    let ordersHtml = '';
+                    if (orders.length > 0) {
+                        ordersHtml = `
+                            <div class="table-orders">
+                                <h3>Pedidos Ativos:</h3>
+                                ${orders.map(order => `
+                                    <div class="order-item">
+                                        <div>ID: ${order.id}</div>
+                                        <div>Status: ${order.status}</div>
+                                        <div>Itens: ${order.itens.map(item => `${item.quantity}x ${item.name}`).join(', ')}</div>
+                                        <div>Total: R$ ${order.total ? parseFloat(order.total).toFixed(2) : '0.00'}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    } else {
+                        ordersHtml = '<p>Nenhum pedido ativo</p>';
+                    }
+                    
+                    const modalHtml = `
+                        <div class="modal" id="tableModal" style="display: flex; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+                            <div class="modal-content" style="background-color: white; margin: 5% auto; padding: 20px; border-radius: 10px; width: 60%; max-width: 600px; max-height: 80vh; overflow-y: auto;">
+                                <span class="close" onclick="closeTableModal()" style="float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+                                <h2>Mesa ${table.numero} - ${table.status}</h2>
+                                
+                                <div class="table-details">
+                                    <p><strong>Capacidade:</strong> ${table.capacidade} pessoas</p>
+                                    <p><strong>Status:</strong> <span class="status-${table.status}">${table.status}</span></p>
+                                </div>
+                                
+                                ${ordersHtml}
+                                
+                                <div class="table-actions">
+                                    <h3>Ações:</h3>
+                                    <button class="btn btn-primary" onclick="openTableMenu('${table.numero}')">Ver Cardápio</button>
+                                    ${orders.length > 0 ? `<button class="btn btn-success" onclick="finalizeTable(${table.id})">Fechar Mesa</button>` : ''}
+                                    <button class="btn btn-danger" onclick="clearTable(${table.id})">Liberar Mesa</button>
+                                </div>
+                                
+                                ${qrCodeUrl ? `
+                                <div class="qrcode-section">
+                                    <h3>QR Code para Mesa ${table.numero}:</h3>
+                                    <div style="text-align: center; margin: 20px 0;">
+                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeUrl)}" 
+                                             alt="QR Code Mesa ${table.numero}" 
+                                             style="border: 1px solid #ccc; padding: 5px;">
+                                    </div>
+                                    <button class="btn btn-primary" onclick="printQRCode('${qrCodeUrl}', '${table.numero}')">Imprimir QR Code</button>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Adicionar modal ao corpo
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = modalHtml;
+                    document.body.appendChild(tempDiv.firstChild);
+                    
+                    // Adicionar evento de clique para fechar o modal quando clicar fora
+                    document.getElementById('tableModal').addEventListener('click', function(event) {
+                        if (event.target === this) {
+                            closeTableModal();
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro ao obter pedidos da mesa:', error);
+                    
+                    // Mesmo com erro nos pedidos, mostrar o modal com as informações básicas
+                    const modalHtml = `
+                        <div class="modal" id="tableModal" style="display: flex; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+                            <div class="modal-content" style="background-color: white; margin: 5% auto; padding: 20px; border-radius: 10px; width: 60%; max-width: 600px; max-height: 80vh; overflow-y: auto;">
+                                <span class="close" onclick="closeTableModal()" style="float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+                                <h2>Mesa ${table.numero} - ${table.status}</h2>
+                                
+                                <div class="table-details">
+                                    <p><strong>Capacidade:</strong> ${table.capacidade} pessoas</p>
+                                    <p><strong>Status:</strong> <span class="status-${table.status}">${table.status}</span></p>
+                                </div>
+                                
+                                <p>Erro ao carregar pedidos ativos</p>
+                                
+                                <div class="table-actions">
+                                    <h3>Ações:</h3>
+                                    <button class="btn btn-primary" onclick="openTableMenu('${table.numero}')">Ver Cardápio</button>
+                                    <button class="btn btn-danger" onclick="clearTable(${table.id})">Liberar Mesa</button>
+                                </div>
+                                
+                                ${qrCodeUrl ? `
+                                <div class="qrcode-section">
+                                    <h3>QR Code para Mesa ${table.numero}:</h3>
+                                    <div style="text-align: center; margin: 20px 0;">
+                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeUrl)}" 
+                                             alt="QR Code Mesa ${table.numero}" 
+                                             style="border: 1px solid #ccc; padding: 5px;">
+                                    </div>
+                                    <button class="btn btn-primary" onclick="printQRCode('${qrCodeUrl}', '${table.numero}')">Imprimir QR Code</button>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Adicionar modal ao corpo
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = modalHtml;
+                    document.body.appendChild(tempDiv.firstChild);
+                    
+                    // Adicionar evento de clique para fechar o modal quando clicar fora
+                    document.getElementById('tableModal').addEventListener('click', function(event) {
+                        if (event.target === this) {
+                            closeTableModal();
+                        }
+                    });
+                });
+        }
+        
+        function closeTableModal() {
+            const modal = document.getElementById('tableModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        function openTableMenu(tableNumber) {
+            // Abrir nova aba com o cardápio da mesa
+            window.open(`/menu?mesa=${tableNumber}`, '_blank');
+        }
+        
+        function finalizeTable(tableId) {
+            if (confirm('Tem certeza que deseja fechar esta mesa?')) {
+                fetch('/api/finalize-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ tableId: tableId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Mesa fechada com sucesso!');
+                        closeTableModal();
+                        loadTablesData(); // Atualizar a visualização das mesas
+                    } else {
+                        alert('Erro ao fechar mesa');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao fechar mesa');
+                });
+            }
+        }
+        
+        function clearTable(tableId) {
+            if (confirm('Tem certeza que deseja liberar esta mesa?')) {
+                fetch(`/api/tables/${tableId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: 'disponivel' })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Mesa liberada com sucesso!');
+                        closeTableModal();
+                        loadTablesData(); // Atualizar a visualização das mesas
+                    } else {
+                        alert('Erro ao liberar mesa');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao liberar mesa');
+                });
+            }
+        }
+        
+        function printQRCode(qrCodeUrl, tableNumber) {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>QR Code - Mesa ${tableNumber}</title>
+                    <style>
+                        body { 
+                            display: flex; 
+                            flex-direction: column; 
+                            align-items: center; 
+                            justify-content: center; 
+                            height: 100vh; 
+                            margin: 0; 
+                            font-family: Arial, sans-serif;
+                        }
+                        .container { 
+                            text-align: center; 
+                        }
+                        h1 { 
+                            margin-bottom: 20px; 
+                        }
+                        img { 
+                            border: 1px solid #ccc; 
+                            padding: 5px; 
+                        }
+                        .footer {
+                            margin-top: 20px;
+                            font-size: 14px;
+                            color: #666;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>Mesa ${tableNumber}</h1>
+                        <img src="${qrCodeUrl.replace('http://', 'https://')}" alt="QR Code Mesa ${tableNumber}">
+                        <div class="footer">
+                            Escaneie este código para acessar o cardápio
+                        </div>
+                    </div>
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
         }
         
         async function loadMenuData() {

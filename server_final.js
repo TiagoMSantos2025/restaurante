@@ -218,6 +218,11 @@ app.get('/', (req, res) => {
   res.redirect('/login');
 });
 
+// Rota principal - redireciona para login
+app.get('/', (req, res) => {
+  res.redirect('/login');
+});
+
 // Rota para a página do cliente com parâmetro de mesa (versão simplificada)
 app.get('/menu', (req, res) => {
   const tableNumber = req.query.mesa || '01';
@@ -613,6 +618,45 @@ app.get('/api/tables', (req, res) => {
       return;
     }
     res.json(rows);
+  });
+});
+
+// Rota para obter detalhes de uma mesa específica
+app.get('/api/tables/:id', (req, res) => {
+  const id = req.params.id;
+  const sql = 'SELECT * FROM mesas WHERE id = ?';
+  db.get(sql, [id], (err, row) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Erro ao buscar mesa' });
+      return;
+    }
+    if (!row) {
+      res.status(404).json({ error: 'Mesa não encontrada' });
+      return;
+    }
+    res.json(row);
+  });
+});
+
+// Rota para atualizar status da mesa
+app.put('/api/tables/:id', (req, res) => {
+  const id = req.params.id;
+  const { status } = req.body;
+  const sql = 'UPDATE mesas SET status = ? WHERE id = ?';
+  db.run(sql, [status, id], function(err) {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Erro ao atualizar mesa' });
+      return;
+    }
+    
+    if (this.changes === 0) {
+      res.status(404).json({ error: 'Mesa não encontrada' });
+      return;
+    }
+    
+    res.json({ success: true });
   });
 });
 
