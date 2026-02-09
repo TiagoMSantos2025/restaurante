@@ -313,6 +313,13 @@
             font-style: italic;
         }
         
+        .product-prep-time {
+            font-size: 0.8em;
+            color: #ff9800;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
         .product-footer {
             display: flex;
             justify-content: space-between;
@@ -433,6 +440,7 @@
                                         <div class="product-name">${product.nome}</div>
                                         <div class="product-description">${product.descricao || ''}</div>
                                         <div class="product-ingredients">Ingredientes: ${product.ingredientes || 'Não informado'}</div>
+                                        <div class="product-prep-time">Tempo de preparo: ${product.tempo_preparo || '15'} min</div>
                                         <div class="product-footer">
                                             <div class="product-price">R$ ${parseFloat(product.preco).toFixed(2)}</div>
                                             <div class="add-to-cart-btn">+</div>

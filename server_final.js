@@ -548,9 +548,9 @@ app.post('/api/tables', (req, res) => {
 
 // API para adicionar produto
 app.post('/api/products', (req, res) => {
-  const { nome, descricao, preco, categoria_id, estoque, ingredientes, tipo } = req.body;
-  const sql = 'INSERT INTO produtos (nome, descricao, preco, categoria_id, estoque, ingredientes, tipo) VALUES (?, ?, ?, ?, ?, ?, ?)';
-  db.run(sql, [nome, descricao, preco, categoria_id, estoque, ingredientes, tipo || 'comida'], function(err) {
+  const { nome, descricao, preco, categoria_id, estoque, ingredientes, tipo, tempo_preparo } = req.body;
+  const sql = 'INSERT INTO produtos (nome, descricao, preco, categoria_id, estoque, ingredientes, tipo, tempo_preparo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+  db.run(sql, [nome, descricao, preco, categoria_id, estoque, ingredientes, tipo || 'comida', tempo_preparo || 15], function(err) {
     if (err) {
       console.error(err);
       res.status(500).json({ error: 'Erro ao adicionar produto' });

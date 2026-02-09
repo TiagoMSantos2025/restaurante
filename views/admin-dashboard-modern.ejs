@@ -489,6 +489,7 @@
                                         <th>Preço</th>
                                         <th>Estoque</th>
                                         <th>Tipo</th>
+                                        <th>Tempo Preparo</th>
                                         <th>Ações</th>
                                     </tr>
                                 </thead>
@@ -505,6 +506,7 @@
                                         <th>Preço</th>
                                         <th>Estoque</th>
                                         <th>Tipo</th>
+                                        <th>Tempo Preparo</th>
                                         <th>Ações</th>
                                     </tr>
                                 </thead>
@@ -521,6 +523,7 @@
                                         <th>Preço</th>
                                         <th>Estoque</th>
                                         <th>Tipo</th>
+                                        <th>Tempo Preparo</th>
                                         <th>Ações</th>
                                     </tr>
                                 </thead>
@@ -537,6 +540,7 @@
                                         <th>Preço</th>
                                         <th>Estoque</th>
                                         <th>Tipo</th>
+                                        <th>Tempo Preparo</th>
                                         <th>Ações</th>
                                     </tr>
                                 </thead>
@@ -673,6 +677,10 @@
                     <input type="number" class="form-control" id="productPrice" step="0.01" min="0" required>
                 </div>
                 <div class="form-group">
+                    <label>Tempo de Preparo (minutos):</label>
+                    <input type="number" class="form-control" id="productPrepTime" min="1" value="15" placeholder="Tempo estimado em minutos">
+                </div>
+                <div class="form-group">
                     <label>Tipo:</label>
                     <select class="form-control" id="productType" required>
                         <option value="comida">Comida</option>
@@ -683,10 +691,17 @@
                     <label>Categoria:</label>
                     <select class="form-control" id="productCategory" required>
                         <option value="">Selecione uma categoria</option>
-                        <option value="1">Entradas</option>
-                        <option value="2">Pratos Principais</option>
-                        <option value="3">Bebidas</option>
-                        <option value="4">Sobremesas</option>
+                        <option value="1">Espetinhos</option>
+                        <option value="2">Lanches</option>
+                        <option value="3">Chapa</option>
+                        <option value="4">Macarrão na Chapa</option>
+                        <option value="5">Pratos Executivos</option>
+                        <option value="6">Porções</option>
+                        <option value="7">Cerveja</option>
+                        <option value="8">Energéticos</option>
+                        <option value="9">Água</option>
+                        <option value="10">Refrigerantes</option>
+                        <option value="11">Pizza</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -1178,6 +1193,7 @@
                             <td>R$ ${parseFloat(product.preco).toFixed(2)}</td>
                             <td>${product.estoque_atual || '-'}</td>
                             <td>${product.tipo}</td>
+                            <td>${product.tempo_preparo || '15'} min</td>
                             <td>
                                 <button class="btn btn-primary" onclick="editProduct(${product.id})">Editar</button>
                                 <button class="btn btn-danger" onclick="deleteProduct(${product.id})">Excluir</button>
@@ -1337,6 +1353,7 @@
                 descricao: document.getElementById('productDescription').value,
                 ingredientes: document.getElementById('productIngredients').value,
                 preco: document.getElementById('productPrice').value,
+                tempo_preparo: document.getElementById('productPrepTime').value,
                 tipo: document.getElementById('productType').value,
                 categoria_id: document.getElementById('productCategory').value,
                 imagem: document.getElementById('productImage').value,
