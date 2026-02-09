@@ -550,6 +550,60 @@ app.post('/api/products', (req, res) => {
   });
 });
 
+// API para excluir produto
+app.delete('/api/products/:id', (req, res) => {
+  const id = req.params.id;
+  const sql = 'DELETE FROM produtos WHERE id = ?';
+  db.run(sql, [id], function(err) {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Erro ao excluir produto' });
+      return;
+    }
+    
+    if (this.changes === 0) {
+      res.status(404).json({ error: 'Produto não encontrado' });
+      return;
+    }
+    
+    res.json({ success: true });
+  });
+});
+
+// API para adicionar mesa
+app.post('/api/tables', (req, res) => {
+  const { numero, capacidade } = req.body;
+  const sql = 'INSERT INTO mesas (numero, capacidade, status) VALUES (?, ?, ?)';
+  db.run(sql, [numero, capacidade, 'disponivel'], function(err) {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Erro ao adicionar mesa' });
+      return;
+    }
+    res.json({ success: true, id: this.lastID });
+  });
+});
+
+// API para excluir mesa
+app.delete('/api/tables/:id', (req, res) => {
+  const id = req.params.id;
+  const sql = 'DELETE FROM mesas WHERE id = ?';
+  db.run(sql, [id], function(err) {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Erro ao excluir mesa' });
+      return;
+    }
+    
+    if (this.changes === 0) {
+      res.status(404).json({ error: 'Mesa não encontrada' });
+      return;
+    }
+    
+    res.json({ success: true });
+  });
+});
+
 app.get('/api/tables', (req, res) => {
   const sql = 'SELECT * FROM mesas ORDER BY numero';
   db.all(sql, [], (err, rows) => {

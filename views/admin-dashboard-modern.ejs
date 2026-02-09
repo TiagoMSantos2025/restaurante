@@ -949,6 +949,84 @@
             document.getElementById(modalId).style.display = 'none';
         }
         
+        // Funções de edição/exclusão (placeholders para evitar erros)
+        function editTable(tableId) {
+            alert('Função de edição de mesa ' + tableId + ' não implementada nesta versão');
+        }
+        
+        function deleteTable(tableId) {
+            if (confirm('Tem certeza que deseja excluir esta mesa?')) {
+                fetch(`/api/tables/${tableId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadTablesData();
+                    } else {
+                        alert('Erro ao excluir mesa');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao excluir mesa');
+                });
+            }
+        }
+        
+        function editProduct(productId) {
+            alert('Função de edição de produto ' + productId + ' não implementada nesta versão');
+        }
+        
+        function deleteProduct(productId) {
+            if (confirm('Tem certeza que deseja excluir este produto?')) {
+                fetch(`/api/products/${productId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadMenuData();
+                    } else {
+                        alert('Erro ao excluir produto');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao excluir produto');
+                });
+            }
+        }
+        
+        function openAddInventoryModal() {
+            alert('Função de adicionar item de estoque não implementada nesta versão');
+        }
+        
+        function openAddCustomerModal() {
+            alert('Cadastro de clientes foi removido do sistema');
+        }
+        
+        function loadInventoryData() {
+            // Função vazia pois o controle de estoque não foi implementado
+            console.log('Controle de estoque não implementado');
+        }
+        
+        function loadCustomersData() {
+            // Função vazia pois o cadastro de clientes foi removido
+            console.log('Cadastro de clientes foi removido');
+        }
+        
+        function loadReportsData() {
+            // Função vazia pois os relatórios não foram implementados
+            console.log('Relatórios não implementados');
+        }
+        
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
             loadDashboardData();
