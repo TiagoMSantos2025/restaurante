@@ -1,34 +1,10 @@
-// Cozinha Socket.IO
-const socket = io();
+// Balcão Socket.IO
+const counterSocket = io();
 
-// Registrar o socket na sala da cozinha
-socket.emit('join_room', 'cozinha');
+// Registrar o socket na sala do balcão
+counterSocket.emit('join_room', 'balcao');
 
 let orders = [];
-let bebidaOrders = []; // Para pedidos de bebidas
-
-// Função para tocar som de notificação (agressivo/alto para cozinha)
-function playKitchenNotificationSound() {
-    // Criar contexto de áudio para tocar som
-    try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // Frequência mais baixa e mais forte
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        
-        oscillator.start();
-        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.8);
-        oscillator.stop(audioContext.currentTime + 0.8);
-    } catch (e) {
-        console.log('Não foi possível reproduzir o som de notificação');
-    }
-}
 
 // Função para tocar som de notificação suave (para balcão)
 function playCounterNotificationSound() {
@@ -74,14 +50,14 @@ function renderOrders() {
             const currentTime = new Date();
             const timeDiff = Math.floor((currentTime - orderTime) / 60000); // diferença em minutos
             
-            // Formatar itens do pedido - mostrar apenas itens de comida
-            const foodItems = order.itens.filter(item => item.tipo === 'comida' || !item.tipo); // Se não tiver tipo definido, assume como comida
-            const itemsHtml = foodItems.map(item => 
+            // Formatar itens do pedido - mostrar apenas itens de bebida
+            const drinkItems = order.itens.filter(item => item.tipo === 'bebida');
+            const itemsHtml = drinkItems.map(item => 
                 `<div class="order-item">${item.quantity}x ${item.name}</div>`
             ).join('');
             
-            // Só mostra o card se tiver itens de comida
-            if (foodItems.length > 0) {
+            // Só mostra o card se tiver itens de bebida
+            if (drinkItems.length > 0) {
                 orderCard.innerHTML = `
                     <div class="order-header">
                         <div class="order-number">#${order.id}</div>
@@ -105,12 +81,6 @@ function renderOrders() {
     // Atualizar contadores
     document.getElementById('pending-count').textContent = pendingCount;
     document.getElementById('preparing-count').textContent = preparingCount;
-}
-
-// Função para renderizar pedidos de bebidas (separado)
-function renderBebidaOrders() {
-    // Para esta implementação, os pedidos de bebidas seriam mostrados em outro container
-    // ou poderíamos ter uma aba separada ou seção dentro da cozinha
 }
 
 // Função para obter texto do status
@@ -142,7 +112,7 @@ function getActionButtons(order) {
 
 // Função para iniciar preparação
 function startPreparation(orderId) {
-    socket.emit('atualizar_status', {
+    counterSocket.emit('atualizar_status', {
         id: orderId,
         status: 'em_preparo'
     });
@@ -150,7 +120,7 @@ function startPreparation(orderId) {
 
 // Função para marcar como pronto
 function markAsReady(orderId) {
-    socket.emit('atualizar_status', {
+    counterSocket.emit('atualizar_status', {
         id: orderId,
         status: 'pronto'
     });
@@ -158,7 +128,7 @@ function markAsReady(orderId) {
 
 // Função para marcar como entregue
 function markAsDelivered(orderId) {
-    socket.emit('atualizar_status', {
+    counterSocket.emit('atualizar_status', {
         id: orderId,
         status: 'entregue'
     });
@@ -167,28 +137,28 @@ function markAsDelivered(orderId) {
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
     // Solicitar pedidos iniciais
-    socket.emit('obter_pedidos');
+    counterSocket.emit('obter_pedidos_bebidas');
     
     // Listener para atualizações de pedidos
-    socket.on('pedidos_atualizados', function(updatedOrders) {
+    counterSocket.on('pedidos_bebidas_atualizados', function(updatedOrders) {
         orders = updatedOrders;
         renderOrders();
     });
     
-    // Listener para novos pedidos na cozinha
-    socket.on('novo_pedido_cozinha', function(data) {
-        playKitchenNotificationSound(); // Som agressivo para cozinha
-        socket.emit('obter_pedidos');
+    // Listener para novos pedidos de bebidas no balcão
+    counterSocket.on('novo_pedido_bebida', function(data) {
+        playCounterNotificationSound(); // Som suave para balcão
+        counterSocket.emit('obter_pedidos_bebidas');
     });
     
     // Listener para atualizações em tempo real
-    socket.on('pedido_atualizado', function(data) {
+    counterSocket.on('pedido_atualizado', function(data) {
         // Atualizar pedido específico ou recarregar lista
-        socket.emit('obter_pedidos');
+        counterSocket.emit('obter_pedidos_bebidas');
     });
 });
 
 // Atualizar a cada 30 segundos automaticamente
 setInterval(() => {
-    socket.emit('obter_pedidos');
+    counterSocket.emit('obter_pedidos_bebidas');
 }, 30000);

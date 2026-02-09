@@ -69,6 +69,8 @@ function initializeDatabase() {
         preco REAL NOT NULL,
         categoria_id INTEGER,
         imagem TEXT,
+        ingredientes TEXT,
+        tipo TEXT DEFAULT 'comida', -- comida ou bebida
         status TEXT DEFAULT 'ativo',
         estoque INTEGER DEFAULT 100,
         FOREIGN KEY (categoria_id) REFERENCES categorias(id)
@@ -83,32 +85,12 @@ function initializeDatabase() {
         hora_inicio_preparo DATETIME,
         hora_finalizacao DATETIME,
         total REAL,
-        cliente_id INTEGER,
         avaliacao_pedido INTEGER,
         comentario_avaliacao TEXT,
-        FOREIGN KEY (mesa_id) REFERENCES mesas(id),
-        FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+        FOREIGN KEY (mesa_id) REFERENCES mesas(id)
       )`);
       
-      db.run(`CREATE TABLE IF NOT EXISTS clientes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome TEXT,
-        email TEXT UNIQUE,
-        telefone TEXT,
-        pontos INTEGER DEFAULT 0,
-        data_registro DATETIME DEFAULT CURRENT_TIMESTAMP
-      )`);
-      
-      db.run(`CREATE TABLE IF NOT EXISTS avaliacoes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        pedido_id INTEGER,
-        produto_id INTEGER,
-        nota INTEGER CHECK(nota >= 1 AND nota <= 5),
-        comentario TEXT,
-        data_avaliacao DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (pedido_id) REFERENCES pedidos(id),
-        FOREIGN KEY (produto_id) REFERENCES produtos(id)
-      )`);
+
       
       db.run(`CREATE TABLE IF NOT EXISTS estoque (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -247,6 +229,11 @@ app.get('/kitchen', (req, res) => {
   res.render('kitchen-dashboard');
 });
 
+// Rota para o painel do balcão
+app.get('/counter', (req, res) => {
+  res.render('counter-dashboard');
+});
+
 // Rota para o painel do caixa (protegida por autenticação)
 app.get('/admin', requireAuth, (req, res) => {
   res.render('admin-dashboard-modern', { 
@@ -255,10 +242,7 @@ app.get('/admin', requireAuth, (req, res) => {
   });
 });
 
-// Rota para cadastro de cliente
-app.get('/cadastro-cliente', (req, res) => {
-  res.render('customer-register');
-});
+
 
 // Rota para avaliação de pedido
 app.get('/avaliar-pedido', (req, res) => {
@@ -270,10 +254,7 @@ app.get('/controle-estoque', (req, res) => {
   res.render('stock-control');
 });
 
-// Rota para sistema de reservas
-app.get('/reservas', (req, res) => {
-  res.render('booking-system');
-});
+
 
 // Rotas da API
 app.get('/api/products', (req, res) => {
@@ -292,19 +273,7 @@ app.get('/api/products', (req, res) => {
   });
 });
 
-// Rota para registrar cliente
-app.post('/api/clientes', (req, res) => {
-  const { nome, email, telefone } = req.body;
-  const sql = 'INSERT INTO clientes (nome, email, telefone) VALUES (?, ?, ?)';
-  db.run(sql, [nome, email, telefone], function(err) {
-    if (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Erro ao registrar cliente' });
-      return;
-    }
-    res.json({ success: true, id: this.lastID });
-  });
-});
+
 
 // Rota para registrar avaliação de pedido
 app.post('/api/avaliar-pedido', (req, res) => {
@@ -365,37 +334,7 @@ app.get('/api/estoque/baixo', (req, res) => {
   });
 });
 
-// Rota para criar reserva
-app.post('/api/reservas', (req, res) => {
-  const { cliente_id, mesa_id, data_reserva, pessoas, observacoes } = req.body;
-  const sql = 'INSERT INTO reservas (cliente_id, mesa_id, data_reserva, pessoas, observacoes) VALUES (?, ?, ?, ?, ?)';
-  db.run(sql, [cliente_id, mesa_id, data_reserva, pessoas, observacoes], function(err) {
-    if (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Erro ao criar reserva' });
-      return;
-    }
-    res.json({ success: true, id: this.lastID });
-  });
-});
 
-// Rota para obter reservas
-app.get('/api/reservas', (req, res) => {
-  const sql = `SELECT r.*, c.nome as cliente_nome, m.numero as mesa_numero 
-               FROM reservas r 
-               JOIN clientes c ON r.cliente_id = c.id 
-               JOIN mesas m ON r.mesa_id = m.id 
-               WHERE r.status = 'ativa' 
-               ORDER BY r.data_reserva`;
-  db.all(sql, [], (err, rows) => {
-    if (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Erro ao buscar reservas' });
-      return;
-    }
-    res.json(rows);
-  });
-});
 
 // Rota para relatório de vendas
 app.get('/api/relatorios/vendas', (req, res) => {
@@ -426,6 +365,31 @@ app.get('/api/relatorios/vendas', (req, res) => {
       return;
     }
     res.json(rows);
+  });
+});
+
+// Rota para atualizar status do pedido
+app.put('/api/orders/update-status', (req, res) => {
+  const { id, status } = req.body;
+  const sql = 'UPDATE pedidos SET status = ? WHERE id = ?';
+  db.run(sql, [status, id], function(err) {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Erro ao atualizar status do pedido' });
+      return;
+    }
+    
+    if (this.changes === 0) {
+      res.status(404).json({ error: 'Pedido não encontrado' });
+      return;
+    }
+    
+    res.json({ success: true, affectedRows: this.changes });
+    
+    // Emitir atualização via socket para notificar outros painéis
+    if (io) {
+      io.emit('pedido_atualizado', { id, status });
+    }
   });
 });
 
@@ -567,9 +531,9 @@ app.post('/api/tables', (req, res) => {
 
 // API para adicionar produto
 app.post('/api/products', (req, res) => {
-  const { nome, descricao, preco, categoria_id, estoque } = req.body;
-  const sql = 'INSERT INTO produtos (nome, descricao, preco, categoria_id, estoque) VALUES (?, ?, ?, ?, ?)';
-  db.run(sql, [nome, descricao, preco, categoria_id, estoque], function(err) {
+  const { nome, descricao, preco, categoria_id, estoque, ingredientes, tipo } = req.body;
+  const sql = 'INSERT INTO produtos (nome, descricao, preco, categoria_id, estoque, ingredientes, tipo) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  db.run(sql, [nome, descricao, preco, categoria_id, estoque, ingredientes, tipo || 'comida'], function(err) {
     if (err) {
       console.error(err);
       res.status(500).json({ error: 'Erro ao adicionar produto' });
@@ -727,6 +691,12 @@ app.get('/api/qrcode-link/:tableNumber', (req, res) => {
 io.on('connection', (socket) => {
   console.log('Usuário conectado:', socket.id);
 
+  // Junta o socket a uma sala específica
+  socket.on('join_room', (room) => {
+    socket.join(room);
+    console.log(`Socket ${socket.id} entrou na sala: ${room}`);
+  });
+
   socket.on('disconnect', () => {
     console.log('Usuário desconectado:', socket.id);
   });
@@ -746,22 +716,66 @@ io.on('connection', (socket) => {
         return;
       }
       
-      // Salvar no banco de dados com status 'pendente'
-      const sql = 'INSERT INTO pedidos (mesa_id, itens, status, total) VALUES (?, ?, ?, ?)';
-      const itensJson = JSON.stringify(pedido.itens);
-      db.run(sql, [mesaRow.id, itensJson, 'pendente', pedido.total], function(err) {
+      // Obter o tipo de cada item do pedido
+      const itemIds = pedido.itens.map(item => item.id).join(',');
+      const produtoSql = `SELECT id, tipo FROM produtos WHERE id IN (${itemIds})`;
+      
+      db.all(produtoSql, [], (err, produtos) => {
         if (err) {
           console.error(err);
           return;
         }
         
-        // Emitir para todos os clientes conectados
-        io.emit('pedido_atualizado', {
-          id: this.lastID,
-          mesa: pedido.mesa,
-          itens: pedido.itens,
-          status: 'pendente',
-          hora_pedido: new Date()
+        // Associar o tipo a cada item do pedido
+        pedido.itens = pedido.itens.map(item => {
+          const produto = produtos.find(p => p.id === item.id);
+          return {
+            ...item,
+            tipo: produto ? produto.tipo : 'comida' // Padrão para comida se não encontrado
+          };
+        });
+        
+        // Salvar no banco de dados com status 'pendente'
+        const sql = 'INSERT INTO pedidos (mesa_id, itens, status, total) VALUES (?, ?, ?, ?)';
+        const itensJson = JSON.stringify(pedido.itens);
+        db.run(sql, [mesaRow.id, itensJson, 'pendente', pedido.total], function(err) {
+          if (err) {
+            console.error(err);
+            return;
+          }
+          
+          // Emitir para todos os clientes conectados
+          io.emit('pedido_atualizado', {
+            id: this.lastID,
+            mesa: pedido.mesa,
+            itens: pedido.itens,
+            status: 'pendente',
+            hora_pedido: new Date()
+          });
+          
+          // Emitir notificação específica para cozinha ou balcão
+          const temComida = pedido.itens.some(item => item.tipo === 'comida');
+          const temBebida = pedido.itens.some(item => item.tipo === 'bebida');
+          
+          if (temComida) {
+            io.to('cozinha').emit('novo_pedido_cozinha', {
+              id: this.lastID,
+              mesa: pedido.mesa,
+              itens: pedido.itens.filter(item => item.tipo === 'comida'),
+              status: 'pendente',
+              hora_pedido: new Date()
+            });
+          }
+          
+          if (temBebida) {
+            io.to('balcao').emit('novo_pedido_bebida', {
+              id: this.lastID,
+              mesa: pedido.mesa,
+              itens: pedido.itens.filter(item => item.tipo === 'bebida'),
+              status: 'pendente',
+              hora_pedido: new Date()
+            });
+          }
         });
       });
     });
@@ -801,6 +815,32 @@ io.on('connection', (socket) => {
       });
       
       socket.emit('pedidos_atualizados', rows);
+    });
+  });
+
+  // Obter pedidos de bebidas para o balcão
+  socket.on('obter_pedidos_bebidas', () => {
+    const sql = `SELECT p.id, p.status, p.hora_pedido, m.numero as mesa, p.itens
+                 FROM pedidos p
+                 JOIN mesas m ON p.mesa_id = m.id
+                 WHERE p.status != ?
+                 ORDER BY p.hora_pedido ASC`;
+    db.all(sql, ['entregue'], (err, rows) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      
+      // Parsear os itens do pedido de JSON string
+      rows = rows.map(order => {
+        order.itens = JSON.parse(order.itens);
+        return order;
+      }).filter(order => {
+        // Filtrar apenas pedidos que contenham bebidas
+        return order.itens.some(item => item.tipo === 'bebida');
+      });
+      
+      socket.emit('pedidos_bebidas_atualizados', rows);
     });
   });
 });

@@ -202,6 +202,65 @@
             background: #f8f9fa;
         }
         
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .table-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            cursor: pointer;
+        }
+        
+        .table-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .table-card.disponivel {
+            border-color: #4CAF50;
+            background: #e8f5e9;
+        }
+        
+        .table-card.ocupada {
+            border-color: #FF9800;
+            background: #fff3e0;
+        }
+        
+        .table-card.reservada {
+            border-color: #2196F3;
+            background: #e3f2fd;
+        }
+        
+        .table-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .table-capacity {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .table-status {
+            font-size: 0.8em;
+            padding: 4px 8px;
+            border-radius: 12px;
+            background: #f0f0f0;
+            display: inline-block;
+        }
+        
         .form-group {
             margin-bottom: 20px;
         }
@@ -341,9 +400,7 @@
             <div class="nav-item" onclick="showSection('orders')">
                 🛒 Pedidos
             </div>
-            <div class="nav-item" onclick="showSection('customers')">
-                👥 Clientes
-            </div>
+
             <div class="nav-item" onclick="showSection('reports')">
                 📈 Relatórios
             </div>
@@ -404,19 +461,9 @@
                         <h2 class="section-title">Gestão de Mesas</h2>
                         <button class="btn btn-primary" onclick="openAddTableModal()">➕ Adicionar Mesa</button>
                     </div>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Número</th>
-                                <th>Capacidade</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablesList">
-                            <!-- Mesas serão carregadas aqui -->
-                        </tbody>
-                    </table>
+                    <div class="tables-grid" id="tablesGrid">
+                        <!-- Mesas serão carregadas aqui como cards visuais -->
+                    </div>
                 </div>
             </div>
             
@@ -441,6 +488,7 @@
                                         <th>Produto</th>
                                         <th>Preço</th>
                                         <th>Estoque</th>
+                                        <th>Tipo</th>
                                         <th>Ações</th>
                                     </tr>
                                 </thead>
@@ -449,7 +497,54 @@
                                 </tbody>
                             </table>
                         </div>
-                        <!-- Outras categorias serão preenchidas dinamicamente -->
+                        <div class="tab-content" data-category="principais">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Preço</th>
+                                        <th>Estoque</th>
+                                        <th>Tipo</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="principais-products">
+                                    <!-- Produtos serão carregados aqui -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="tab-content" data-category="bebidas">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Preço</th>
+                                        <th>Estoque</th>
+                                        <th>Tipo</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bebidas-products">
+                                    <!-- Produtos serão carregados aqui -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="tab-content" data-category="sobremesas">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Preço</th>
+                                        <th>Estoque</th>
+                                        <th>Tipo</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sobremesas-products">
+                                    <!-- Produtos serão carregados aqui -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -501,29 +596,7 @@
                 </div>
             </div>
             
-            <!-- Customers Section -->
-            <div id="customers-section" class="section-content" style="display: none;">
-                <div class="section">
-                    <div class="section-header">
-                        <h2 class="section-title">Cadastro de Clientes</h2>
-                        <button class="btn btn-primary" onclick="openAddCustomerModal()">➕ Novo Cliente</button>
-                    </div>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Email</th>
-                                <th>Telefone</th>
-                                <th>Pontos</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="customersList">
-                            <!-- Clientes serão carregados aqui -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+
             
             <!-- Reports Section -->
             <div id="reports-section" class="section-content" style="display: none;">
@@ -592,8 +665,19 @@
                     <textarea class="form-control" id="productDescription" rows="3"></textarea>
                 </div>
                 <div class="form-group">
+                    <label>Ingredientes:</label>
+                    <textarea class="form-control" id="productIngredients" rows="2" placeholder="Ex: Carne bovina, alface, tomate, pão francês"></textarea>
+                </div>
+                <div class="form-group">
                     <label>Preço:</label>
                     <input type="number" class="form-control" id="productPrice" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Tipo:</label>
+                    <select class="form-control" id="productType" required>
+                        <option value="comida">Comida</option>
+                        <option value="bebida">Bebida</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Categoria:</label>
@@ -604,6 +688,10 @@
                         <option value="3">Bebidas</option>
                         <option value="4">Sobremesas</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label>Foto (URL):</label>
+                    <input type="text" class="form-control" id="productImage" placeholder="URL da imagem do produto">
                 </div>
                 <div class="form-group">
                     <label>Quantidade em Estoque:</label>
@@ -672,13 +760,56 @@
                 case 'orders':
                     loadOrdersData();
                     break;
-                case 'customers':
-                    loadCustomersData();
-                    break;
                 case 'reports':
                     loadReportsData();
                     break;
             }
+        }
+        
+        async function loadOrdersData() {
+            try {
+                const response = await fetch('/api/orders/recent');
+                const orders = await response.json();
+                renderOrders(orders);
+            } catch (error) {
+                console.error('Erro ao carregar pedidos:', error);
+            }
+        }
+        
+        function renderOrders(orders) {
+            const tbody = document.getElementById('ordersList');
+            tbody.innerHTML = orders.map(order => `
+                <tr>
+                    <td>Mesa ${order.mesa}</td>
+                    <td>${order.itens ? order.itens.map(item => `${item.quantity}x ${item.name}`).join(', ') : 'N/A'}</td>
+                    <td>R$ ${order.total ? parseFloat(order.total).toFixed(2) : '0.00'}</td>
+                    <td><span class="status-${order.status || 'pendente'}">${order.status || 'pendente'}</span></td>
+                    <td>
+                        <button class="btn btn-primary" onclick="updateOrderStatus(${order.id}, 'em_preparo')">Iniciar</button>
+                        <button class="btn btn-success" onclick="updateOrderStatus(${order.id}, 'pronto')">Pronto</button>
+                        <button class="btn btn-danger" onclick="updateOrderStatus(${order.id}, 'entregue')">Entregar</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function updateOrderStatus(orderId, newStatus) {
+            fetch('/api/orders/update-status', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id: orderId, status: newStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadOrdersData();
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao atualizar status do pedido:', error);
+            });
         }
         
         // Funções de carregamento de dados
@@ -729,18 +860,19 @@
         }
         
         function renderTables(tables) {
-            const tbody = document.getElementById('tablesList');
-            tbody.innerHTML = tables.map(table => `
-                <tr>
-                    <td>${table.numero}</td>
-                    <td>${table.capacidade} pessoas</td>
-                    <td><span class="status-${table.status}">${table.status}</span></td>
-                    <td>
-                        <button class="btn btn-primary" onclick="editTable(${table.id})">Editar</button>
-                        <button class="btn btn-danger" onclick="deleteTable(${table.id})">Excluir</button>
-                    </td>
-                </tr>
+            const grid = document.getElementById('tablesGrid');
+            grid.innerHTML = tables.map(table => `
+                <div class="table-card ${table.status}" onclick="manageTable(${table.id})">
+                    <div class="table-number">${table.numero}</div>
+                    <div class="table-capacity">${table.capacidade} pessoas</div>
+                    <div class="table-status">${table.status}</div>
+                </div>
             `).join('');
+        }
+        
+        function manageTable(tableId) {
+            // Aqui você pode abrir um modal com opções para gerenciar a mesa
+            alert('Opções de gerenciamento para a mesa ' + tableId + ' (editar, liberar, etc)');
         }
         
         async function loadMenuData() {
@@ -775,9 +907,16 @@
                 if (tbody) {
                     tbody.innerHTML = products.map(product => `
                         <tr>
-                            <td>${product.nome}</td>
+                            <td>
+                                ${product.imagem ? `<img src="${product.imagem}" alt="${product.nome}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px; margin-right: 10px;">` : ''}
+                                <div>
+                                    <strong>${product.nome}</strong><br>
+                                    <small>${product.ingredientes || ''}</small>
+                                </div>
+                            </td>
                             <td>R$ ${parseFloat(product.preco).toFixed(2)}</td>
                             <td>${product.estoque_atual || '-'}</td>
+                            <td>${product.tipo}</td>
                             <td>
                                 <button class="btn btn-primary" onclick="editProduct(${product.id})">Editar</button>
                                 <button class="btn btn-danger" onclick="deleteProduct(${product.id})">Excluir</button>
@@ -857,8 +996,11 @@
             const productData = {
                 nome: document.getElementById('productName').value,
                 descricao: document.getElementById('productDescription').value,
+                ingredientes: document.getElementById('productIngredients').value,
                 preco: document.getElementById('productPrice').value,
+                tipo: document.getElementById('productType').value,
                 categoria_id: document.getElementById('productCategory').value,
+                imagem: document.getElementById('productImage').value,
                 estoque: document.getElementById('productStock').value
             };
             
