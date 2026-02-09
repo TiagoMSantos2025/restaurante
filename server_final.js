@@ -235,10 +235,10 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
-// Rota para a página do cliente com parâmetro de mesa
+// Rota para a página do cliente com parâmetro de mesa (versão simplificada)
 app.get('/menu', (req, res) => {
   const tableNumber = req.query.mesa || '01';
-  res.render('client-menu', { tableNumber });
+  res.render('client-menu-simple', { tableNumber });
 });
 
 // Rota para o painel da cozinha
@@ -453,6 +453,47 @@ app.get('/api/backup', (req, res) => {
   createBackup();
   
   res.json({ success: true, message: 'Backup iniciado com sucesso' });
+});
+
+// Rota para criar pedidos
+app.post('/api/orders', (req, res) => {
+  const { mesa, itens, total } = req.body;
+  
+  // Primeiro, encontrar o ID da mesa pelo número
+  const mesaSql = 'SELECT id FROM mesas WHERE numero = ?';
+  db.get(mesaSql, [mesa], (err, mesaRow) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Erro ao encontrar mesa' });
+    }
+    
+    if (!mesaRow) {
+      return res.status(404).json({ error: `Mesa ${mesa} não encontrada` });
+    }
+    
+    // Salvar no banco de dados com status 'pendente'
+    const sql = 'INSERT INTO pedidos (mesa_id, itens, status, total) VALUES (?, ?, ?, ?)';
+    const itensJson = JSON.stringify(itens);
+    db.run(sql, [mesaRow.id, itensJson, 'pendente', total], function(err) {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Erro ao salvar pedido' });
+      }
+      
+      // Emitir para todos os clientes conectados via WebSocket
+      if (io) {
+        io.emit('pedido_atualizado', {
+          id: this.lastID,
+          mesa: mesa,
+          itens: itens,
+          status: 'pendente',
+          hora_pedido: new Date()
+        });
+      }
+      
+      res.json({ success: true, orderId: this.lastID });
+    });
+  });
 });
 
 app.get('/api/tables', (req, res) => {
