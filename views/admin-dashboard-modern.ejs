@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Sistema Restaurante</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .container {
+            display: flex;
+            min-height: calc(100vh - 70px);
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            padding: 20px 0;
+        }
+        
+        .nav-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: #f8f9fa;
+            border-left-color: #667eea;
+        }
+        
+        .nav-item.active {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+            color: #1976d2;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 30px;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-title {
+            color: #666;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .stat-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .section-title {
+            font-size: 1.4em;
+            color: #333;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+        
+        .close:hover {
+            color: #000;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 25px;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                padding: 15px 0;
+            }
+            
+            .nav-item {
+                padding: 12px 20px;
+            }
+            
+            .main-content {
+                padding: 20px 15px;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🍽️ Sistema Restaurante Pro</h1>
+        <div class="user-info">
+            <span>Bem-vindo, <%= userName %> (<%= userLevel %>)</span>
+            <form action="/logout" method="POST" style="display: inline;">
+                <button type="submit" class="logout-btn">Sair</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="sidebar">
+            <div class="nav-item active" onclick="showSection('dashboard')">
+                📊 Dashboard
+            </div>
+            <div class="nav-item" onclick="showSection('tables')">
+                🪑 Gestão de Mesas
+            </div>
+            <div class="nav-item" onclick="showSection('menu')">
+                📋 Cardápio
+            </div>
+            <div class="nav-item" onclick="showSection('inventory')">
+                📦 Estoque
+            </div>
+            <div class="nav-item" onclick="showSection('orders')">
+                🛒 Pedidos
+            </div>
+            <div class="nav-item" onclick="showSection('customers')">
+                👥 Clientes
+            </div>
+            <div class="nav-item" onclick="showSection('reports')">
+                📈 Relatórios
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="section-content active">
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🍽️</div>
+                        <div class="stat-title">Mesas Ocupadas</div>
+                        <div class="stat-value" id="occupiedTables">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🛒</div>
+                        <div class="stat-title">Pedidos Hoje</div>
+                        <div class="stat-value" id="todayOrders">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-title">Receita Hoje</div>
+                        <div class="stat-value">R$ <span id="todayRevenue">0.00</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-title">Clientes Ativos</div>
+                        <div class="stat-value" id="activeCustomers">0</div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Pedidos Recentes</h2>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mesa</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentOrders">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #666;">Carregando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Tables Management Section -->
+            <div id="tables-section" class="section-content" style="display: none;">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Gestão de Mesas</h2>
+                        <button class="btn btn-primary" onclick="openAddTableModal()">➕ Adicionar Mesa</button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Capacidade</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablesList">
+                            <!-- Mesas serão carregadas aqui -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Menu Management Section -->
+            <div id="menu-section" class="section-content" style="display: none;">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Gestão do Cardápio</h2>
+                        <button class="btn btn-primary" onclick="openAddProductModal()">➕ Adicionar Produto</button>
+                    </div>
+                    <div class="tabs">
+                        <div class="tab active" onclick="switchTab(this, 'entradas')">Entradas</div>
+                        <div class="tab" onclick="switchTab(this, 'principais')">Pratos Principais</div>
+                        <div class="tab" onclick="switchTab(this, 'bebidas')">Bebidas</div>
+                        <div class="tab" onclick="switchTab(this, 'sobremesas')">Sobremesas</div>
+                    </div>
+                    <div id="menuTabs">
+                        <div class="tab-content active" data-category="entradas">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Preço</th>
+                                        <th>Estoque</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="entradas-products">
+                                    <!-- Produtos serão carregados aqui -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Outras categorias serão preenchidas dinamicamente -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Inventory Section -->
+            <div id="inventory-section" class="section-content" style="display: none;">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Controle de Estoque</h2>
+                        <button class="btn btn-primary" onclick="openAddInventoryModal()">➕ Adicionar Item</button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Quantidade Atual</th>
+                                <th>Quantidade Mínima</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryList">
+                            <!-- Estoque será carregado aqui -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Orders Section -->
+            <div id="orders-section" class="section-content" style="display: none;">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Gerenciamento de Pedidos</h2>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mesa</th>
+                                <th>Itens</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersList">
+                            <!-- Pedidos serão carregados aqui -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Customers Section -->
+            <div id="customers-section" class="section-content" style="display: none;">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Cadastro de Clientes</h2>
+                        <button class="btn btn-primary" onclick="openAddCustomerModal()">➕ Novo Cliente</button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Telefone</th>
+                                <th>Pontos</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersList">
+                            <!-- Clientes serão carregados aqui -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Reports Section -->
+            <div id="reports-section" class="section-content" style="display: none;">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Relatórios e Análises</h2>
+                    </div>
+                    <div class="dashboard-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">📈</div>
+                            <div class="stat-title">Vendas do Mês</div>
+                            <div class="stat-value">R$ <span id="monthlySales">0.00</span></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⭐</div>
+                            <div class="stat-title">Produto Mais Vendido</div>
+                            <div class="stat-value" id="topProduct">-</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🕒</div>
+                            <div class="stat-title">Horário de Pico</div>
+                            <div class="stat-value" id="peakHour">-</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🔄</div>
+                            <div class="stat-title">Ticket Médio</div>
+                            <div class="stat-value">R$ <span id="averageTicket">0.00</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para adicionar mesa -->
+    <div class="modal" id="addTableModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addTableModal')">&times;</span>
+            <h2>Adicionar Nova Mesa</h2>
+            <form id="addTableForm">
+                <div class="form-group">
+                    <label>Número da Mesa:</label>
+                    <input type="text" class="form-control" id="tableNumber" required>
+                </div>
+                <div class="form-group">
+                    <label>Capacidade:</label>
+                    <input type="number" class="form-control" id="tableCapacity" min="1" max="20" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Salvar Mesa</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal para adicionar produto -->
+    <div class="modal" id="addProductModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addProductModal')">&times;</span>
+            <h2>Adicionar Novo Produto</h2>
+            <form id="addProductForm">
+                <div class="form-group">
+                    <label>Nome do Produto:</label>
+                    <input type="text" class="form-control" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label>Descrição:</label>
+                    <textarea class="form-control" id="productDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Preço:</label>
+                    <input type="number" class="form-control" id="productPrice" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoria:</label>
+                    <select class="form-control" id="productCategory" required>
+                        <option value="">Selecione uma categoria</option>
+                        <option value="1">Entradas</option>
+                        <option value="2">Pratos Principais</option>
+                        <option value="3">Bebidas</option>
+                        <option value="4">Sobremesas</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Quantidade em Estoque:</label>
+                    <input type="number" class="form-control" id="productStock" min="0" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Salvar Produto</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Funções de navegação
+        function showSection(sectionName) {
+            // Esconder todas as seções
+            document.querySelectorAll('.section-content').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Remover classe active dos nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Mostrar seção selecionada
+            document.getElementById(`${sectionName}-section`).style.display = 'block';
+            
+            // Adicionar classe active ao nav item
+            event.currentTarget.classList.add('active');
+            
+            // Carregar dados da seção
+            loadSectionData(sectionName);
+        }
+        
+        function switchTab(tabElement, categoryName) {
+            // Remover active de todas as tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Adicionar active à tab clicada
+            tabElement.classList.add('active');
+            
+            // Esconder todos os conteúdos
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Mostrar conteúdo da categoria selecionada
+            document.querySelector(`.tab-content[data-category="${categoryName}"]`).classList.add('active');
+        }
+        
+        function loadSectionData(sectionName) {
+            switch(sectionName) {
+                case 'dashboard':
+                    loadDashboardData();
+                    break;
+                case 'tables':
+                    loadTablesData();
+                    break;
+                case 'menu':
+                    loadMenuData();
+                    break;
+                case 'inventory':
+                    loadInventoryData();
+                    break;
+                case 'orders':
+                    loadOrdersData();
+                    break;
+                case 'customers':
+                    loadCustomersData();
+                    break;
+                case 'reports':
+                    loadReportsData();
+                    break;
+            }
+        }
+        
+        // Funções de carregamento de dados
+        async function loadDashboardData() {
+            try {
+                const statsResponse = await fetch('/api/dashboard/stats');
+                const stats = await statsResponse.json();
+                
+                document.getElementById('occupiedTables').textContent = stats.occupiedTables || 0;
+                document.getElementById('todayOrders').textContent = stats.todayOrders || 0;
+                document.getElementById('todayRevenue').textContent = (stats.todayRevenue || 0).toFixed(2);
+                document.getElementById('activeCustomers').textContent = stats.activeCustomers || 0;
+                
+                // Carregar pedidos recentes
+                const ordersResponse = await fetch('/api/orders/recent');
+                const orders = await ordersResponse.json();
+                renderRecentOrders(orders);
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+            }
+        }
+        
+        function renderRecentOrders(orders) {
+            const tbody = document.getElementById('recentOrders');
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #666;">Nenhum pedido recente</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = orders.map(order => `
+                <tr>
+                    <td>Mesa ${order.mesa}</td>
+                    <td>R$ ${parseFloat(order.total).toFixed(2)}</td>
+                    <td><span class="status-${order.status}">${order.status}</span></td>
+                    <td>${new Date(order.hora_pedido).toLocaleTimeString()}</td>
+                </tr>
+            `).join('');
+        }
+        
+        async function loadTablesData() {
+            try {
+                const response = await fetch('/api/tables');
+                const tables = await response.json();
+                renderTables(tables);
+            } catch (error) {
+                console.error('Erro ao carregar mesas:', error);
+            }
+        }
+        
+        function renderTables(tables) {
+            const tbody = document.getElementById('tablesList');
+            tbody.innerHTML = tables.map(table => `
+                <tr>
+                    <td>${table.numero}</td>
+                    <td>${table.capacidade} pessoas</td>
+                    <td><span class="status-${table.status}">${table.status}</span></td>
+                    <td>
+                        <button class="btn btn-primary" onclick="editTable(${table.id})">Editar</button>
+                        <button class="btn btn-danger" onclick="deleteTable(${table.id})">Excluir</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        async function loadMenuData() {
+            try {
+                const response = await fetch('/api/products');
+                const products = await response.json();
+                renderMenu(products);
+            } catch (error) {
+                console.error('Erro ao carregar cardápio:', error);
+            }
+        }
+        
+        function renderMenu(products) {
+            const categories = {
+                'entradas': [],
+                'principais': [],
+                'bebidas': [],
+                'sobremesas': []
+            };
+            
+            // Classificar produtos por categoria (simplificado)
+            products.forEach(product => {
+                if (product.categoria_nome) {
+                    const categoryKey = getCategoryKey(product.categoria_nome);
+                    categories[categoryKey].push(product);
+                }
+            });
+            
+            // Renderizar cada categoria
+            Object.entries(categories).forEach(([key, products]) => {
+                const tbody = document.getElementById(`${key}-products`);
+                if (tbody) {
+                    tbody.innerHTML = products.map(product => `
+                        <tr>
+                            <td>${product.nome}</td>
+                            <td>R$ ${parseFloat(product.preco).toFixed(2)}</td>
+                            <td>${product.estoque_atual || '-'}</td>
+                            <td>
+                                <button class="btn btn-primary" onclick="editProduct(${product.id})">Editar</button>
+                                <button class="btn btn-danger" onclick="deleteProduct(${product.id})">Excluir</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            });
+        }
+        
+        function getCategoryKey(categoryName) {
+            const lowerName = categoryName.toLowerCase();
+            if (lowerName.includes('entrada')) return 'entradas';
+            if (lowerName.includes('principal')) return 'principais';
+            if (lowerName.includes('bebida')) return 'bebidas';
+            if (lowerName.includes('sobremesa')) return 'sobremesas';
+            return 'entradas'; // padrão
+        }
+        
+        // Funções auxiliares
+        function openAddTableModal() {
+            document.getElementById('addTableModal').style.display = 'flex';
+        }
+        
+        function openAddProductModal() {
+            document.getElementById('addProductModal').style.display = 'flex';
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+        });
+        
+        // Fechar modais ao clicar fora
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        };
+        
+        // Formulário de adicionar mesa
+        document.getElementById('addTableForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const tableData = {
+                numero: document.getElementById('tableNumber').value,
+                capacidade: document.getElementById('tableCapacity').value
+            };
+            
+            try {
+                const response = await fetch('/api/tables', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(tableData)
+                });
+                
+                if (response.ok) {
+                    closeModal('addTableModal');
+                    loadTablesData();
+                    document.getElementById('addTableForm').reset();
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar mesa:', error);
+            }
+        });
+        
+        // Formulário de adicionar produto
+        document.getElementById('addProductForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const productData = {
+                nome: document.getElementById('productName').value,
+                descricao: document.getElementById('productDescription').value,
+                preco: document.getElementById('productPrice').value,
+                categoria_id: document.getElementById('productCategory').value,
+                estoque: document.getElementById('productStock').value
+            };
+            
+            try {
+                const response = await fetch('/api/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(productData)
+                });
+                
+                if (response.ok) {
+                    closeModal('addProductModal');
+                    loadMenuData();
+                    document.getElementById('addProductForm').reset();
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar produto:', error);
+            }
+        });
+    </script>
+</body>
+</html>

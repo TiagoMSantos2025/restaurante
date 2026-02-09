@@ -232,7 +232,8 @@ function requireAuth(req, res, next) {
 
 // Rotas
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/index.html'));
+  // Redirecionar diretamente para login
+  res.redirect('/login');
 });
 
 // Rota para a página do cliente com parâmetro de mesa (versão simplificada)
@@ -493,6 +494,95 @@ app.post('/api/orders', (req, res) => {
       
       res.json({ success: true, orderId: this.lastID });
     });
+  });
+});
+
+// APIs para o dashboard administrativo
+app.get('/api/dashboard/stats', (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
+  
+  const queries = {
+    occupiedTables: 'SELECT COUNT(*) as count FROM mesas WHERE status = "ocupada"',
+    todayOrders: `SELECT COUNT(*) as count FROM pedidos WHERE DATE(hora_pedido) = "${today}" AND status = "entregue"`,
+    todayRevenue: `SELECT COALESCE(SUM(total), 0) as revenue FROM pedidos WHERE DATE(hora_pedido) = "${today}" AND status = "entregue"`,
+    activeCustomers: 'SELECT COUNT(*) as count FROM clientes'
+  };
+  
+  const results = {};
+  
+  const executeQuery = (key, query, callback) => {
+    db.get(query, [], (err, row) => {
+      if (err) {
+        console.error(`Erro na query ${key}:`, err);
+        results[key] = 0;
+      } else {
+        results[key] = row ? (row.count || row.revenue || 0) : 0;
+      }
+      callback();
+    });
+  };
+  
+  let completed = 0;
+  const totalQueries = Object.keys(queries).length;
+  
+  Object.entries(queries).forEach(([key, query]) => {
+    executeQuery(key, query, () => {
+      completed++;
+      if (completed === totalQueries) {
+        res.json(results);
+      }
+    });
+  });
+});
+
+app.get('/api/orders/recent', (req, res) => {
+  const sql = `SELECT p.*, m.numero as mesa 
+               FROM pedidos p 
+               JOIN mesas m ON p.mesa_id = m.id 
+               ORDER BY p.hora_pedido DESC 
+               LIMIT 10`;
+  db.all(sql, [], (err, rows) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Erro ao buscar pedidos recentes' });
+      return;
+    }
+    res.json(rows);
+  });
+});
+
+// API para adicionar mesa
+app.post('/api/tables', (req, res) => {
+  const { numero, capacidade } = req.body;
+  const sql = 'INSERT INTO mesas (numero, capacidade, status) VALUES (?, ?, ?)';
+  db.run(sql, [numero, capacidade, 'disponivel'], function(err) {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Erro ao adicionar mesa' });
+      return;
+    }
+    res.json({ success: true, id: this.lastID });
+  });
+});
+
+// API para adicionar produto
+app.post('/api/products', (req, res) => {
+  const { nome, descricao, preco, categoria_id, estoque } = req.body;
+  const sql = 'INSERT INTO produtos (nome, descricao, preco, categoria_id, estoque) VALUES (?, ?, ?, ?, ?)';
+  db.run(sql, [nome, descricao, preco, categoria_id, estoque], function(err) {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Erro ao adicionar produto' });
+      return;
+    }
+    
+    // Adicionar ao estoque também
+    const estoqueSql = 'INSERT INTO estoque (produto_id, quantidade_atual, quantidade_minima) VALUES (?, ?, ?)';
+    db.run(estoqueSql, [this.lastID, estoque, 10], (err) => {
+      if (err) console.error('Erro ao adicionar estoque:', err);
+    });
+    
+    res.json({ success: true, id: this.lastID });
   });
 });
 
