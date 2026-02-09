@@ -218,9 +218,21 @@ app.get('/', (req, res) => {
   res.redirect('/login');
 });
 
-// Rota principal - redireciona para login
+// Rota principal - redireciona para o painel admin no Railway
 app.get('/', (req, res) => {
-  res.redirect('/login');
+  // Detectar se está rodando no Railway
+  const host = req.get('Host');
+  if (host && host.includes('railway.app')) {
+    // Se estiver no Railway, redireciona para o admin (precisa estar logado)
+    if (req.session.userId) {
+      res.redirect('/admin');
+    } else {
+      res.redirect('/login');
+    }
+  } else {
+    // Localmente ou em outros ambientes, redireciona para login
+    res.redirect('/login');
+  }
 });
 
 // Rota para a página do cliente com parâmetro de mesa (versão simplificada)
