@@ -891,6 +891,9 @@
             fetch(`/api/tables/${tableId}`)
                 .then(response => {
                     console.log('Resposta da API para mesa:', response.status);
+                    if (!response.ok) {
+                        throw new Error('Erro na resposta da API');
+                    }
                     return response.json();
                 })
                 .then(table => {
@@ -899,6 +902,9 @@
                     fetch(`/api/qrcode-link/${table.numero}`)
                         .then(qrResponse => {
                             console.log('Resposta da API QR Code:', qrResponse.status);
+                            if (!qrResponse.ok) {
+                                throw new Error('Erro na resposta da API QR Code');
+                            }
                             return qrResponse.json();
                         })
                         .then(qrData => {
@@ -912,6 +918,7 @@
                 })
                 .catch(error => {
                     console.error('Erro ao obter detalhes da mesa:', error);
+                    alert('Erro ao obter informações da mesa. Por favor, tente novamente.');
                 });
         }
         
