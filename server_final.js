@@ -654,9 +654,29 @@ app.get('/api/tables/:id', (req, res) => {
 // Rota para atualizar status da mesa
 app.put('/api/tables/:id', (req, res) => {
   const id = req.params.id;
-  const { status } = req.body;
-  const sql = 'UPDATE mesas SET status = ? WHERE id = ?';
-  db.run(sql, [status, id], function(err) {
+  const { status, nome_cliente } = req.body;
+  
+  // Montar dinamicamente a query SQL com base nos campos fornecidos
+  let sql = 'UPDATE mesas SET ';
+  const params = [];
+  
+  if (status !== undefined) {
+    sql += 'status = ?';
+    params.push(status);
+  }
+  
+  if (nome_cliente !== undefined) {
+    if (params.length > 0) {
+      sql += ', ';
+    }
+    sql += 'nome_cliente = ?';
+    params.push(nome_cliente);
+  }
+  
+  sql += ' WHERE id = ?';
+  params.push(id);
+  
+  db.run(sql, params, function(err) {
     if (err) {
       console.error(err);
       res.status(500).json({ error: 'Erro ao atualizar mesa' });
