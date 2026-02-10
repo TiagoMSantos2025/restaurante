@@ -8,24 +8,8 @@ let orders = [];
 
 // Função para tocar som de notificação suave (para balcão)
 function playCounterNotificationSound() {
-    try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(1200, audioContext.currentTime); // Frequência mais alta e suave
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        
-        oscillator.start();
-        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.4);
-        oscillator.stop(audioContext.currentTime + 0.4);
-    } catch (e) {
-        console.log('Não foi possível reproduzir o som de notificação suave');
-    }
+    const audio = new Audio('/sounds/counter-notification.mp3');
+    audio.play().catch(e => console.log('Erro ao tocar áudio do balcão:', e));
 }
 
 // Função para renderizar os pedidos

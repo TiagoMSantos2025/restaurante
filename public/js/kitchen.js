@@ -9,25 +9,8 @@ let bebidaOrders = []; // Para pedidos de bebidas
 
 // Função para tocar som de notificação (agressivo/alto para cozinha)
 function playKitchenNotificationSound() {
-    // Criar contexto de áudio para tocar som
-    try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // Frequência mais baixa e mais forte
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        
-        oscillator.start();
-        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.8);
-        oscillator.stop(audioContext.currentTime + 0.8);
-    } catch (e) {
-        console.log('Não foi possível reproduzir o som de notificação');
-    }
+    const audio = new Audio('/sounds/kitchen-notification.mp3');
+    audio.play().catch(e => console.log('Erro ao tocar áudio de cozinha:', e));
 }
 
 // Função para tocar som de notificação suave (para balcão)
