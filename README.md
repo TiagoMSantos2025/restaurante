@@ -120,16 +120,19 @@ NODE_ENV=production
 
 - SQLite não é ideal para ambientes com alta concorrência
 - Limitações em ambientes stateless (como Heroku)
-- Menor segurança comparado a servidores de banco de dados dedicados
+- Menor segurança comparado a servidores de dados dedicados
 - Falta de recursos avançados de backup e replicação
 
 ## 📱 Páginas Disponíveis
 
 - **Página Principal**: http://localhost:3000
+- **Login**: http://localhost:3000/login
+- **Painel Administrativo (Balcão)**: http://localhost:3000/admin
 - **Cardápio Mesa 01**: http://localhost:3000/menu?mesa=01
 - **Painel da Cozinha**: http://localhost:3000/kitchen
-- **Painel do Administrador**: http://localhost:3000/admin
-- **Controle de Estoque**: http://localhost:3000/controle-estoque
+- **Controle de Estoque**: http://localhost:3000/estoque
+- **Painel de Delivery**: http://localhost:3000/delivery
+- **Painel do Balcão**: http://localhost:3000/counter
 - **Cadastro Cliente**: http://localhost:3000/cadastro-cliente
 - **Avaliar Pedido**: http://localhost:3000/avaliar-pedido
 - **Reservas Online**: http://localhost:3000/reservas
@@ -146,7 +149,7 @@ NODE_ENV=production
 ### Clientes
 - **Cadastro de clientes**: Área para registro de informações do cliente
 - **Sistema de avaliações**: Possibilidade de avaliar pedidos e produtos
-- **Acumulo de pontos**: Sistema de fidelidade para clientes cadastrados
+- **Acumlo de pontos**: Sistema de fidelidade para clientes cadastrados
 
 ### Estoque e Produtos
 - **Controle de estoque**: Monitoramento em tempo real de ingredientes e produtos
@@ -177,16 +180,20 @@ NODE_ENV=production
 
 ```
 sistema para restaurantes/
-├── public/                 # Arquivos estáticos (CSS, JS, imagens)
-│   ├── css/               # Arquivos de estilo
-│   ├── js/                # Scripts frontend
-│   └── images/            # Imagens
-├── views/                 # Templates EJS
-├── src/                   # Código-fonte organizado por módulos
-├── server_final.js        # Servidor principal com SQLite
-├── database.sql           # Script de criação do banco de dados (backup)
-├── restaurante.db         # Banco de dados SQLite (criado automaticamente)
-├── package.json           # Dependências e scripts
+├── delivery/              # Pasta para painel de delivery
+├── kitchen/               # Pasta para painel de cozinha (futura implementação)
+├── estoque/               # Pasta para controle de estoque (futura implementação)
+├── public/                # Arquivos estáticos (CSS, JS, imagens)
+│   ├── css/              # Arquivos de estilo
+│   ├── js/               # Scripts frontend
+│   ├── sounds/           # Sons de notificação (cozinha.mp3 e balcao.mp3)
+│   └── images/           # Imagens
+├── views/                # Templates EJS
+├── src/                  # Código-fonte organizado por módulos
+├── server_final.js       # Servidor principal com SQLite
+├── database.sql          # Script de criação do banco de dados (backup)
+├── restaurante.db        # Banco de dados SQLite (criado automaticamente)
+├── package.json          # Dependências e scripts
 ├── README.md             # Documentação
 ├── DEPLOY.md             # Guia de deploy
 ├── .env.example          # Modelo de variáveis de ambiente
