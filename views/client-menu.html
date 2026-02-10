@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio Digital</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+        
+        .table-info {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .menu-content {
+            padding: 25px;
+        }
+        
+        .category {
+            margin-bottom: 30px;
+        }
+        
+        .category-title {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .product-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            background: #fff;
+        }
+        
+        .product-image {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .product-image img {
+            width: 100%;
+            max-width: 200px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .no-image {
+            width: 100%;
+            max-width: 200px;
+            height: 150px;
+            background: #e9ecef;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        
+        .product-info {
+            text-align: center;
+        }
+        
+        .product-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+        
+        .product-description {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+        
+        .product-ingredients {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+        
+        .product-prep-time {
+            font-size: 0.8em;
+            color: #ff9800;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .product-price {
+            color: #2e7d32;
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        
+        .add-to-cart-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            width: 100%;
+        }
+        
+        .add-to-cart-btn:hover {
+            background: #45a049;
+        }
+        
+        .cart {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #f44336;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: black;
+        }
+        
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
+            background: #f8f9fa;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .quantity {
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .remove-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .order-btn {
+            width: 100%;
+            padding: 15px;
+            background: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .order-btn:hover {
+            background: #1976d2;
+        }
+        
+        .total {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        /* Modal para solicitar nome do cliente */
+        #customerNameModal {
+            display: flex;
+        }
+        
+        #customerNameModal .modal-content {
+            margin: 15% auto;
+            width: 80%;
+            max-width: 400px;
+        }
+        
+        #customerNameInput {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+        
+        #submitCustomerName {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Modal para solicitar nome do cliente -->
+    <div id="customerNameModal" class="modal">
+        <div class="modal-content">
+            <h2 style="text-align: center; margin-bottom: 20px;">Identificação</h2>
+            <p style="text-align: center; margin-bottom: 20px;">Por favor, informe seu nome para continuar:</p>
+            <input type="text" id="customerNameInput" placeholder="Digite seu nome" maxlength="100">
+            <button id="submitCustomerName">Confirmar</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Cardápio Digital</h1>
+            <div class="table-info">Mesa <span id="tableNumberDisplay">01</span></div>
+            <div class="customer-name" id="customerNameDisplay" style="font-size: 0.9em; opacity: 0.8; margin-top: 5px;"></div>
+        </div>
+        
+        <div class="menu-content" id="menuContent">
+            <!-- Conteúdo do cardápio será carregado aqui -->
+        </div>
+    </div>
+    
+    <!-- Botão do carrinho -->
+    <div class="cart" onclick="openCart()">
+        🛒
+        <div class="cart-count" id="cartCount">0</div>
+    </div>
+    
+    <!-- Modal do carrinho -->
+    <div class="modal" id="cartModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCart()">&times;</span>
+            <h2>Seu Pedido</h2>
+            <div id="cartItems"></div>
+            <div class="total">Total: R$ <span id="totalAmount">0.00</span></div>
+            <button class="order-btn" onclick="placeOrder()">Confirmar Pedido</button>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+        let tableNumber = '01';
+        let customerName = '';
+
+        // Função para solicitar nome do cliente
+        function requestCustomerName() {
+            // Verificar se já temos o nome do cliente salvo para esta mesa
+            const savedName = localStorage.getItem(`customerName_${tableNumber}`);
+            if (savedName) {
+                customerName = savedName;
+                document.getElementById('customerNameDisplay').textContent = `Cliente: ${savedName}`;
+                document.getElementById('customerNameModal').style.display = 'none';
+                loadMenu();
+                return;
+            }
+            
+            // Evento para o botão de confirmação
+            document.getElementById('submitCustomerName').onclick = function() {
+                const name = document.getElementById('customerNameInput').value.trim();
+                if (name) {
+                    customerName = name;
+                    // Salvar nome no localStorage
+                    localStorage.setItem(`customerName_${tableNumber}`, name);
+                    
+                    // Atualizar exibição do nome
+                    document.getElementById('customerNameDisplay').textContent = `Cliente: ${name}`;
+                    
+                    // Fechar modal e carregar o cardápio
+                    document.getElementById('customerNameModal').style.display = 'none';
+                    loadMenu();
+                } else {
+                    alert('Por favor, digite seu nome para continuar.');
+                }
+            };
+            
+            // Permitir pressionar Enter para confirmar
+            document.getElementById('customerNameInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('submitCustomerName').click();
+                }
+            });
+        }
+
+        // Função para carregar o cardápio
+        function loadMenu() {
+            // Simulação de carregamento de produtos - em uma implementação real, isso viria de uma API
+            const products = [
+                {
+                    id: 1,
+                    nome: 'Pastel de Queijo',
+                    descricao: 'Pastel crocante recheado com queijo derretido',
+                    ingredientes: 'Massa fina, queijo mussarela',
+                    preco: 8.50,
+                    tempo_preparo: 10,
+                    categoria_id: 1,
+                    categoria_nome: 'Lanches',
+                    imagem: '',
+                    tipo: 'comida'
+                },
+                {
+                    id: 2,
+                    nome: 'Refrigerante Lata',
+                    descricao: 'Refrigerante gelado de sua preferência',
+                    ingredientes: 'Água, açúcar, CO2, aromatizantes',
+                    preco: 5.00,
+                    tempo_preparo: 1,
+                    categoria_id: 10,
+                    categoria_nome: 'Refrigerantes',
+                    imagem: '',
+                    tipo: 'bebida'
+                },
+                {
+                    id: 3,
+                    nome: 'Porção de Batata Frita',
+                    descricao: 'Batatas fritas crocantes e saborosas',
+                    ingredientes: 'Batata, óleo, sal',
+                    preco: 18.00,
+                    tempo_preparo: 15,
+                    categoria_id: 6,
+                    categoria_nome: 'Porções',
+                    imagem: '',
+                    tipo: 'comida'
+                }
+            ];
+            
+            renderMenu(products);
+        }
+
+        // Função para renderizar o cardápio
+        function renderMenu(products) {
+            const menuContent = document.getElementById('menuContent');
+            const categories = {};
+            
+            // Agrupar produtos por categoria
+            products.forEach(product => {
+                const categoryName = getCategoryName(product.categoria_id);
+                if (!categories[categoryName]) {
+                    categories[categoryName] = [];
+                }
+                categories[categoryName].push(product);
+            });
+            
+            let html = '';
+            for (const [categoryName, categoryProducts] of Object.entries(categories)) {
+                html += `
+                    <div class="category">
+                        <div class="category-title">${categoryName}</div>
+                        <div class="products-grid">
+                            ${categoryProducts.map(product => `
+                                <div class="product-card" onclick="addToCart(${product.id}, '${product.nome}', ${product.preco}, '${product.imagem || ''}')">
+                                    <div class="product-image">
+                                        ${product.imagem ? `<img src="${product.imagem}" alt="${product.nome}" onerror="this.style.display='none'">` : `<div class="no-image">📷</div>`}
+                                    </div>
+                                    <div class="product-info">
+                                        <div class="product-name">${product.nome}</div>
+                                        <div class="product-description">${product.descricao || ''}</div>
+                                        <div class="product-ingredients">Ingredientes: ${product.ingredientes || 'Não informado'}</div>
+                                        <div class="product-prep-time">Tempo de preparo: ${product.tempo_preparo || '15'} min</div>
+                                        <div class="product-price">R$ ${parseFloat(product.preco).toFixed(2)}</div>
+                                        <button class="add-to-cart-btn">Adicionar</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            menuContent.innerHTML = html;
+        }
+
+        // Função para obter nome da categoria
+        function getCategoryName(categoriaId) {
+            const categories = {
+                1: 'Espetinhos',
+                2: 'Lanches',
+                3: 'Chapa',
+                4: 'Macarrão na Chapa',
+                5: 'Pratos Executivos',
+                6: 'Porções',
+                7: 'Cerveja',
+                8: 'Energéticos',
+                9: 'Água',
+                10: 'Refrigerantes',
+                11: 'Pizza'
+            };
+            return categories[categoriaId] || 'Diversos';
+        }
+
+        // Função para adicionar ao carrinho
+        function addToCart(productId, productName, productPrice, productImage) {
+            const existingItem = cart.find(item => item.id === productId);
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                cart.push({
+                    id: productId,
+                    name: productName,
+                    price: productPrice,
+                    image: productImage,
+                    quantity: 1
+                });
+            }
+            updateCartDisplay();
+        }
+
+        // Função para atualizar exibição do carrinho
+        function updateCartDisplay() {
+            document.getElementById('cartCount').textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+        }
+
+        // Função para abrir o carrinho
+        function openCart() {
+            renderCart();
+            document.getElementById('cartModal').style.display = 'block';
+        }
+
+        // Função para fechar o carrinho
+        function closeCart() {
+            document.getElementById('cartModal').style.display = 'none';
+        }
+
+        // Função para renderizar o carrinho
+        function renderCart() {
+            const cartItems = document.getElementById('cartItems');
+            let html = '';
+            
+            cart.forEach((item, index) => {
+                html += `
+                    <div class="cart-item">
+                        <div>
+                            <div>${item.name}</div>
+                            <div>R$ ${item.price.toFixed(2)}</div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn" onclick="changeQuantity(${index}, -1)">-</button>
+                            <span class="quantity">${item.quantity}</span>
+                            <button class="quantity-btn" onclick="changeQuantity(${index}, 1)">+</button>
+                            <button class="remove-btn" onclick="removeFromCart(${index})">Remover</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cartItems.innerHTML = html;
+            
+            // Calcular total
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            document.getElementById('totalAmount').textContent = total.toFixed(2);
+        }
+
+        // Função para alterar quantidade
+        function changeQuantity(index, change) {
+            cart[index].quantity += change;
+            if (cart[index].quantity <= 0) {
+                cart.splice(index, 1);
+            }
+            updateCartDisplay();
+            renderCart();
+        }
+
+        // Função para remover do carrinho
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartDisplay();
+            renderCart();
+        }
+
+        // Função para finalizar pedido
+        async function placeOrder() {
+            if (cart.length === 0) {
+                alert('Seu carrinho está vazio!');
+                return;
+            }
+            
+            // Simular envio do pedido
+            alert('Pedido enviado com sucesso!');
+            cart = [];
+            updateCartDisplay();
+            closeCart();
+        }
+
+        // Função para obter número da mesa da URL
+        function getTableNumberFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tableNum = urlParams.get('mesa');
+            return tableNum || '01'; // Valor padrão
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obter número da mesa da URL
+            tableNumber = getTableNumberFromUrl();
+            document.getElementById('tableNumberDisplay').textContent = tableNumber;
+            
+            // Solicitar nome do cliente
+            requestCustomerName();
+        });
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const cartModal = document.getElementById('cartModal');
+            if (event.target === cartModal) {
+                closeCart();
+            }
+        };
+    </script>
+</body>
+</html>

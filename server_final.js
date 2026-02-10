@@ -241,6 +241,16 @@ app.get('/menu', (req, res) => {
   res.render('client-menu-simple', { tableNumber });
 });
 
+// Rota para o novo cardápio do cliente
+app.get('/cardapio', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'client-menu.html'));
+});
+
+// Rota para o controle de estoque
+app.get('/estoque', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'inventory.html'));
+});
+
 // Rota para o painel da cozinha
 app.get('/kitchen', (req, res) => {
   res.render('kitchen-dashboard');
