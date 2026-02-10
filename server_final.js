@@ -322,16 +322,34 @@ app.post('/api/avaliar-produto', (req, res) => {
 
 // Rota para atualizar estoque
 app.put('/api/estoque/atualizar', (req, res) => {
-  const { produto_id, quantidade } = req.body;
-  const sql = `INSERT OR REPLACE INTO estoque (produto_id, quantidade_atual, ultima_atualizacao) 
-              VALUES (?, ?, CURRENT_TIMESTAMP)`;
-  db.run(sql, [produto_id, quantidade], function(err) {
+  const { produto_id, quantidade, quantidade_minima } = req.body;
+  const minima = quantidade_minima !== undefined ? quantidade_minima : 10; // Valor padrão de 10
+  
+  // Verificar se o produto existe
+  const checkSql = 'SELECT id FROM produtos WHERE id = ?';
+  db.get(checkSql, [produto_id], (err, row) => {
     if (err) {
       console.error(err);
-      res.status(500).json({ error: 'Erro ao atualizar estoque' });
+      res.status(500).json({ error: 'Erro ao verificar produto' });
       return;
     }
-    res.json({ success: true });
+    
+    if (!row) {
+      res.status(404).json({ error: 'Produto não encontrado' });
+      return;
+    }
+    
+    // Atualizar ou inserir o estoque
+    const sql = `INSERT OR REPLACE INTO estoque (produto_id, quantidade_atual, quantidade_minima, ultima_atualizacao) 
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP)`;
+    db.run(sql, [produto_id, quantidade, minima], function(err) {
+      if (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erro ao atualizar estoque' });
+        return;
+      }
+      res.json({ success: true });
+    });
   });
 });
 
