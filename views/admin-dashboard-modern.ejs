@@ -887,13 +887,22 @@
         
         function manageTable(tableId) {
             // Obter detalhes da mesa e abrir modal com opções
+            console.log('Clicou na mesa com ID:', tableId);
             fetch(`/api/tables/${tableId}`)
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Resposta da API para mesa:', response.status);
+                    return response.json();
+                })
                 .then(table => {
+                    console.log('Dados da mesa recebidos:', table);
                     // Gerar QR Code para a mesa
                     fetch(`/api/qrcode-link/${table.numero}`)
-                        .then(qrResponse => qrResponse.json())
+                        .then(qrResponse => {
+                            console.log('Resposta da API QR Code:', qrResponse.status);
+                            return qrResponse.json();
+                        })
                         .then(qrData => {
+                            console.log('QR Code data:', qrData);
                             showTableModal(table, qrData.url);
                         })
                         .catch(error => {
