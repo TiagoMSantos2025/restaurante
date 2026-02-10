@@ -925,10 +925,16 @@
         function showTableModal(table, qrCodeUrl) {
             // Obter pedidos ativos da mesa
             fetch(`/api/table-orders/${table.id}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(orders => {
+                    console.log('Pedidos recebidos para a mesa:', orders);
                     let ordersHtml = '';
-                    if (orders.length > 0) {
+                    if (orders && orders.length > 0) {
                         ordersHtml = `
                             <div class="table-orders">
                                 <h3>Pedidos Ativos:</h3>
@@ -963,7 +969,7 @@
                                 <div class="table-actions">
                                     <h3>Ações:</h3>
                                     <button class="btn btn-primary" onclick="openTableMenu('${table.numero}')">Ver Cardápio</button>
-                                    ${orders.length > 0 ? `<button class="btn btn-success" onclick="finalizeTable(${table.id})">Fechar Mesa</button>` : ''}
+                                    ${orders && orders.length > 0 ? `<button class="btn btn-success" onclick="finalizeTable(${table.id})">Fechar Mesa</button>` : ''}
                                     <button class="btn btn-danger" onclick="clearTable(${table.id})">Liberar Mesa</button>
                                 </div>
                                 
@@ -971,7 +977,7 @@
                                 <div class="qrcode-section">
                                     <h3>QR Code para Mesa ${table.numero}:</h3>
                                     <div style="text-align: center; margin: 20px 0;">
-                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeUrl)}" 
+                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeUrl).replace(/'/g, '%27')}" 
                                              alt="QR Code Mesa ${table.numero}" 
                                              style="border: 1px solid #ccc; padding: 5px;">
                                     </div>
@@ -1025,7 +1031,7 @@
                                 <div class="qrcode-section">
                                     <h3>QR Code para Mesa ${table.numero}:</h3>
                                     <div style="text-align: center; margin: 20px 0;">
-                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeUrl)}" 
+                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeUrl).replace(/'/g, '%27')}" 
                                              alt="QR Code Mesa ${table.numero}" 
                                              style="border: 1px solid #ccc; padding: 5px;">
                                     </div>
