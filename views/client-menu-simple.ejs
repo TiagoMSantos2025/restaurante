@@ -366,10 +366,23 @@
     </style>
 </head>
 <body>
+    <!-- Modal para solicitar nome do cliente -->
+    <div id="customerNameModal" class="modal" style="display: flex; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-content" style="background-color: white; margin: 15% auto; padding: 20px; border-radius: 10px; width: 80%; max-width: 400px;">
+            <h2 style="text-align: center; margin-bottom: 20px;">Identificação</h2>
+            <p style="text-align: center; margin-bottom: 20px;">Por favor, informe seu nome para continuar:</p>
+            <input type="text" id="customerNameInput" placeholder="Digite seu nome" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; margin-bottom: 15px;" maxlength="100">
+            <div style="text-align: center;">
+                <button id="submitCustomerName" class="btn btn-primary" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
     <div class="container">
         <div class="header">
             <h1>🍽️ Cardápio Digital</h1>
             <div class="table-info">Mesa <%= tableNumber %></div>
+            <div class="customer-name" id="customerNameDisplay" style="font-size: 0.9em; opacity: 0.8; margin-top: 5px;"></div>
         </div>
         
         <div class="menu-content" id="menuContent">
@@ -555,8 +568,75 @@
             statusDiv.style.display = 'block';
         }
         
+        // Função para solicitar nome do cliente
+        function requestCustomerName() {
+            // Verificar se já temos o nome do cliente salvo para esta mesa
+            const savedName = localStorage.getItem(`customerName_${tableNumber}`);
+            if (savedName) {
+                document.getElementById('customerNameDisplay').textContent = `Cliente: ${savedName}`;
+                // Enviar nome para o servidor para atualizar a mesa
+                updateTableCustomerName(savedName);
+                return;
+            }
+            
+            // Mostrar modal para solicitar nome
+            document.getElementById('customerNameModal').style.display = 'flex';
+            
+            // Evento para o botão de confirmação
+            document.getElementById('submitCustomerName').onclick = function() {
+                const customerName = document.getElementById('customerNameInput').value.trim();
+                if (customerName) {
+                    // Salvar nome no localStorage
+                    localStorage.setItem(`customerName_${tableNumber}`, customerName);
+                    
+                    // Atualizar exibição do nome
+                    document.getElementById('customerNameDisplay').textContent = `Cliente: ${customerName}`;
+                    
+                    // Enviar nome para o servidor para atualizar a mesa
+                    updateTableCustomerName(customerName);
+                    
+                    // Fechar modal
+                    document.getElementById('customerNameModal').style.display = 'none';
+                } else {
+                    alert('Por favor, digite seu nome para continuar.');
+                }
+            };
+            
+            // Permitir pressionar Enter para confirmar
+            document.getElementById('customerNameInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('submitCustomerName').click();
+                }
+            });
+        }
+        
+        // Função para atualizar o nome do cliente na mesa no servidor
+        function updateTableCustomerName(customerName) {
+            fetch(`/api/tables/${tableNumber}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    nome_cliente: customerName
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.error('Erro ao atualizar nome do cliente na mesa');
+                }
+            })
+            .catch(error => {
+                console.error('Erro na requisição:', error);
+            });
+        }
+        
         // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
+            // Solicitar nome do cliente apenas se for uma mesa específica (não a mesa 00)
+            if (tableNumber && tableNumber !== '00') {
+                requestCustomerName();
+            }
             loadProducts();
         });
         

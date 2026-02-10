@@ -955,6 +955,7 @@
                                 <div class="table-details">
                                     <p><strong>Capacidade:</strong> ${table.capacidade} pessoas</p>
                                     <p><strong>Status:</strong> <span class="status-${table.status}">${table.status}</span></p>
+                                    ${table.nome_cliente ? `<p><strong>Cliente:</strong> ${table.nome_cliente}</p>` : ''}
                                 </div>
                                 
                                 ${ordersHtml}
@@ -1009,6 +1010,7 @@
                                 <div class="table-details">
                                     <p><strong>Capacidade:</strong> ${table.capacidade} pessoas</p>
                                     <p><strong>Status:</strong> <span class="status-${table.status}">${table.status}</span></p>
+                                    ${table.nome_cliente ? `<p><strong>Cliente:</strong> ${table.nome_cliente}</p>` : ''}
                                 </div>
                                 
                                 <p>Erro ao carregar pedidos ativos</p>
