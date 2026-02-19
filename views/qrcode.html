@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code - Restaurante</title>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <title>QR Codes - Meu Restaurante</title>
     <style>
         * {
             margin: 0;
@@ -14,179 +13,176 @@
         }
         
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            background: #f5f5f5;
+        }
+        
+        .navbar {
+            background: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar h1 {
+            color: #333;
+        }
+        
+        .navbar h1 span {
+            color: #667eea;
+        }
+        
+        .user-info {
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
+            gap: 20px;
+        }
+        
+        .logout {
+            background: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        
+        .back-btn {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 20px;
         }
         
         .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 32px;
-        }
-        
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-        }
-        
-        .qr-container {
-            background: #f8f9fa;
             padding: 30px;
-            border-radius: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
             margin-bottom: 30px;
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
         
-        #qrcode {
-            margin: 20px 0;
-            padding: 20px;
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
             background: white;
             border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        #qrcode canvas {
-            max-width: 250px;
-            height: auto;
-        }
-        
-        .url-box {
-            background: #f0f0f0;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            word-break: break-all;
-            font-size: 14px;
-            color: #666;
-        }
-        
-        .instructions {
-            text-align: left;
-            background: #f8f9fa;
             padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
         }
         
-        .instructions h3 {
-            color: #333;
-            margin-bottom: 15px;
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
         
-        .instructions ol {
-            padding-left: 20px;
-            color: #555;
+        .mesa {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
         }
         
-        .instructions li {
-            margin-bottom: 10px;
+        .qr-image {
+            max-width: 200px;
+            margin: 15px auto;
+            display: block;
+            border: 1px solid #eee;
+            padding: 10px;
+            background: white;
         }
         
         .btn {
-            background: #667eea;
+            background: #28a745;
             color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 5px;
-            transition: transform 0.2s;
+            padding: 8px 15px;
             text-decoration: none;
+            border-radius: 5px;
             display: inline-block;
+            margin-top: 10px;
+            font-size: 14px;
+            transition: background 0.3s;
         }
         
         .btn:hover {
-            transform: translateY(-2px);
+            background: #218838;
         }
         
-        .btn-success {
-            background: #28a745;
-        }
-        
-        .admin-link {
-            margin-top: 20px;
-            color: #999;
-            font-size: 14px;
-        }
-        
-        .admin-link a {
-            color: #667eea;
-            text-decoration: none;
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
         }
     </style>
 </head>
 <body>
+    <nav class="navbar">
+        <h1>📱 <span id="restauranteNome">Meu Restaurante</span> | QR Codes</h1>
+        <div class="user-info">
+            <a href="/dashboard" class="back-btn">← Dashboard</a>
+            <a href="/logout" class="logout">Sair</a>
+        </div>
+    </nav>
+    
     <div class="container">
-        <h1>🍽️ Restaurante</h1>
-        <div class="subtitle">Cardápio Digital</div>
-        
-        <div class="qr-container">
-            <div id="qrcode"></div>
-            <div class="url-box" id="urlDisplay">Carregando...</div>
-            
-            <div>
-                <button class="btn btn-success" onclick="downloadQR()">📥 Download QR Code</button>
-                <button class="btn" onclick="copyURL()">📋 Copiar Link</button>
-            </div>
+        <div class="header">
+            <h2>📱 QR Codes das Mesas</h2>
+            <p>Escaneie ou baixe para imprimir e colocar nas mesas</p>
         </div>
         
-        <div class="instructions">
-            <h3>📱 Como usar:</h3>
-            <ol>
-                <li>Escaneie o QR Code com a câmera do celular</li>
-                <li>Digite o número da sua mesa</li>
-                <li>Digite seu nome</li>
-                <li>Acesse o cardápio e faça seu pedido</li>
-            </ol>
-        </div>
-        
-        <div class="admin-link">
-            <a href="/login">Área do Administrador</a> | 
-            <a href="/kitchen">Cozinha</a>
+        <div class="grid" id="qrcodes-grid">
+            <div class="loading">Carregando QR Codes...</div>
         </div>
     </div>
-    
+
     <script>
-        // URL de acesso
-        const url = `${window.location.protocol}//${window.location.host}/acesso`;
-        document.getElementById('urlDisplay').textContent = url;
+        // Pegar restauranteId da URL se for super admin
+        const urlParams = new URLSearchParams(window.location.search);
+        const restauranteId = urlParams.get('restauranteId') || '1';
         
-        // Gerar QR Code
-        new QRCode(document.getElementById('qrcode'), {
-            text: url,
-            width: 250,
-            height: 250
-        });
+        document.getElementById('restauranteNome').textContent = 'Meu Restaurante';
         
-        function downloadQR() {
-            const canvas = document.querySelector('#qrcode canvas');
-            const link = document.createElement('a');
-            link.download = 'qrcode-restaurante.png';
-            link.href = canvas.toDataURL();
-            link.click();
+        async function carregarQRCode() {
+            try {
+                const response = await fetch('/api/mesas');
+                const mesas = await response.json();
+                
+                const grid = document.getElementById('qrcodes-grid');
+                
+                if (mesas.length === 0) {
+                    grid.innerHTML = '<div class="loading">Nenhuma mesa encontrada</div>';
+                    return;
+                }
+                
+                grid.innerHTML = mesas.map(mesa => `
+                    <div class="card">
+                        <div class="mesa">Mesa ${mesa.numero}</div>
+                        <img src="/qrcode/${restauranteId}/${mesa.numero}" class="qr-image" alt="QR Code Mesa ${mesa.numero}">
+                        <br>
+                        <a href="/qrcode/${restauranteId}/${mesa.numero}?download=1" class="btn">📥 Baixar QR Code</a>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                document.getElementById('qrcodes-grid').innerHTML = '<div class="loading">Erro ao carregar QR Codes</div>';
+            }
         }
         
-        function copyURL() {
-            navigator.clipboard.writeText(url);
-            alert('Link copiado para a área de transferência!');
-        }
+        carregarQRCode();
     </script>
 </body>
 </html>
