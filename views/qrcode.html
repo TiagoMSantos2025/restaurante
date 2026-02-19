@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Codes - Meu Restaurante</title>
+    <title>QR Codes do Restaurante</title>
     <style>
         * {
             margin: 0;
@@ -13,14 +13,17 @@
         }
         body {
             background: #f5f5f5;
+            padding: 20px;
         }
         .navbar {
             background: white;
-            padding: 20px 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         .navbar h1 {
             color: #333;
@@ -28,18 +31,12 @@
         .navbar h1 span {
             color: #667eea;
         }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
         .logout {
             background: #dc3545;
             color: white;
             padding: 8px 16px;
             text-decoration: none;
             border-radius: 5px;
-            font-weight: 500;
         }
         .back-link {
             color: #667eea;
@@ -47,7 +44,6 @@
             margin-right: 20px;
         }
         .container {
-            padding: 30px;
             max-width: 1200px;
             margin: 0 auto;
         }
@@ -63,6 +59,11 @@
             padding: 20px;
             text-align: center;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
         .mesa {
             font-size: 20px;
@@ -74,6 +75,9 @@
             max-width: 150px;
             margin: 10px auto;
             display: block;
+            border: 1px solid #eee;
+            padding: 5px;
+            background: white;
         }
         .btn-download {
             display: inline-block;
@@ -88,58 +92,60 @@
         .btn-download:hover {
             background: #218838;
         }
-        .loading {
+        .loading, .error, .empty {
             text-align: center;
             padding: 50px;
             color: #666;
+            font-size: 18px;
+        }
+        .error {
+            color: #dc3545;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <h1>📱 <span id="restaurante-nome">Meu Restaurante</span> | QR Codes</h1>
-        <div class="user-info">
+    <div class="navbar">
+        <h1>📱 <span>QR Codes</span></h1>
+        <div>
             <a href="/dashboard" class="back-link">← Dashboard</a>
             <a href="/logout" class="logout">Sair</a>
         </div>
-    </nav>
+    </div>
 
     <div class="container">
-        <div class="grid" id="qrcodes-grid">
+        <div id="grid" class="grid">
             <div class="loading">Carregando QR Codes...</div>
         </div>
     </div>
 
     <script>
-        async function carregarMesas() {
+        (async function() {
+            const grid = document.getElementById('grid');
             try {
                 const response = await fetch('/api/mesas');
+                if (!response.ok) throw new Error('Erro ao carregar mesas');
                 const mesas = await response.json();
-                const grid = document.getElementById('qrcodes-grid');
 
                 if (mesas.length === 0) {
-                    grid.innerHTML = '<div class="loading">Nenhuma mesa encontrada</div>';
+                    grid.innerHTML = '<div class="empty">Nenhuma mesa cadastrada.</div>';
                     return;
                 }
 
-                // Pegar restauranteId da URL se existir (para super admin)
-                const urlParams = new URLSearchParams(window.location.search);
-                const restauranteId = urlParams.get('restauranteId') || '1';
+                const restauranteId = mesas[0].restauranteId || 1;
 
                 grid.innerHTML = mesas.map(m => `
                     <div class="card">
                         <div class="mesa">Mesa ${m.numero}</div>
-                        <img src="/qrcode/${restauranteId}/${m.numero}" class="qr-img" alt="QR Code Mesa ${m.numero}">
+                        <img src="/qrcode/${restauranteId}/${m.numero}" alt="QR Code da Mesa ${m.numero}" class="qr-img" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'150\' height=\'150\' viewBox=\'0 0 150 150\'><rect width=\'150\' height=\'150\' fill=\'%23f0f0f0\'/><text x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23999\' font-size=\'14\'>Erro</text></svg>';">
                         <br>
                         <a href="/qrcode/${restauranteId}/${m.numero}?download=1" class="btn-download">📥 Baixar</a>
                     </div>
                 `).join('');
             } catch (error) {
-                document.getElementById('qrcodes-grid').innerHTML = '<div class="loading">Erro ao carregar</div>';
+                grid.innerHTML = `<div class="error">Erro ao carregar as mesas. Tente novamente.</div>`;
+                console.error(error);
             }
-        }
-
-        carregarMesas();
+        })();
     </script>
 </body>
 </html>

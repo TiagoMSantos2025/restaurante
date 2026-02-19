@@ -3,90 +3,427 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Admin</title>
+    <title>Super Admin - MultiRestaurante</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: #f5f5f5; }
-        .navbar { background: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .navbar h1 span { color: #667eea; }
-        .logout { background: #dc3545; color: white; padding: 8px 16px; text-decoration: none; border-radius: 5px; }
-        .container { padding: 30px; max-width: 1200px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; margin-bottom: 30px; }
-        .btn-primary { background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; }
-        table { width: 100%; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        th { background: #667eea; color: white; padding: 15px; text-align: left; }
-        td { padding: 15px; border-bottom: 1px solid #eee; }
-        .btn-sm { background: #667eea; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: white; padding: 30px; border-radius: 10px; width: 400px; }
-        .modal-content input { width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid #ddd; border-radius: 5px; }
-        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .logo span {
+            color: #667eea;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: #555;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
+        /* Container principal */
+        .container {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Cabeçalho da página */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-header h2 {
+            font-size: 28px;
+            color: #333;
+        }
+
+        .btn-primary {
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #218838;
+        }
+
+        /* Tabela de restaurantes */
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .btn-sm {
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+
+        .btn-sm:hover {
+            background: #5a6fd8;
+        }
+
+        .btn-sm-danger {
+            background: #dc3545;
+        }
+
+        .btn-sm-danger:hover {
+            background: #c82333;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-content h3 {
+            margin: 20px 0 10px;
+            color: #555;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .loading, .empty {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            table {
+                font-size: 14px;
+            }
+            th, td {
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
     <nav class="navbar">
-        <h1>👑 <span>Super Admin</span></h1>
-        <a href="/logout" class="logout">Sair</a>
-    </nav>
-    <div class="container">
-        <div class="header">
-            <h2>Restaurantes</h2>
-            <button class="btn-primary" onclick="abrirModal()">+ Novo</button>
+        <div class="logo">
+            <h1>👑 <span>Super Admin</span> | MultiRestaurante</h1>
         </div>
-        <table>
-            <thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Ações</th></tr></thead>
-            <tbody id="restaurantes-list"></tbody>
-        </table>
+        <div class="user-menu">
+            <span class="user-name" id="userName">Carregando...</span>
+            <a href="/logout" class="logout-btn">Sair</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h2>🏢 Restaurantes Cadastrados</h2>
+            <button class="btn-primary" onclick="abrirModal()">+ Novo Restaurante</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Telefone</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="restaurantes-list">
+                    <tr><td colspan="5" class="loading">Carregando...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div class="modal" id="modal">
+
+    <!-- Modal Novo Restaurante -->
+    <div class="modal" id="modal-restaurante">
         <div class="modal-content">
-            <h2>Novo Restaurante</h2>
-            <input type="text" id="nome" placeholder="Nome">
-            <input type="email" id="email" placeholder="Email">
-            <h3>Administrador</h3>
-            <input type="text" id="admin_nome" placeholder="Nome do admin">
-            <input type="email" id="admin_email" placeholder="Email do admin">
-            <input type="password" id="admin_senha" placeholder="Senha">
+            <h2>➕ Novo Restaurante</h2>
+
+            <h3>📋 Dados do Restaurante</h3>
+            <div class="form-group">
+                <label>Nome do Restaurante</label>
+                <input type="text" id="rest-nome" placeholder="Ex: Restaurante do João" required>
+            </div>
+            <div class="form-group">
+                <label>Email do Restaurante</label>
+                <input type="email" id="rest-email" placeholder="contato@restaurante.com" required>
+            </div>
+            <div class="form-group">
+                <label>Telefone (opcional)</label>
+                <input type="text" id="rest-telefone" placeholder="(11) 99999-9999">
+            </div>
+            <div class="form-group">
+                <label>Endereço (opcional)</label>
+                <input type="text" id="rest-endereco" placeholder="Rua, número, bairro">
+            </div>
+
+            <h3>👤 Administrador do Restaurante</h3>
+            <div class="form-group">
+                <label>Nome do Admin</label>
+                <input type="text" id="admin-nome" placeholder="Nome completo" required>
+            </div>
+            <div class="form-group">
+                <label>Email do Admin</label>
+                <input type="email" id="admin-email" placeholder="admin@restaurante.com" required>
+            </div>
+            <div class="form-group">
+                <label>Senha do Admin</label>
+                <input type="password" id="admin-senha" placeholder="••••••••" required>
+            </div>
+
             <div class="modal-actions">
-                <button class="btn-primary" onclick="salvar()">Salvar</button>
-                <button class="btn-sm" style="background:#666;" onclick="fecharModal()">Cancelar</button>
+                <button class="btn-primary" onclick="salvarRestaurante()">Salvar</button>
+                <button class="btn-sm btn-sm-danger" onclick="fecharModal()">Cancelar</button>
             </div>
         </div>
     </div>
+
     <script>
-        async function carregar() {
-            const res = await fetch('/api/restaurantes');
-            const data = await res.json();
-            document.getElementById('restaurantes-list').innerHTML = data.map(r => `
-                <tr>
-                    <td>#${r.id}</td>
-                    <td>${r.nome}</td>
-                    <td>${r.email}</td>
-                    <td><a href="/qrcodes/${r.id}" class="btn-sm">📱 QR</a></td>
-                </tr>
-            `).join('');
+        // Nome do usuário (poderia ser passado pelo backend)
+        document.getElementById('userName').textContent = 'Super Admin';
+
+        // Função para carregar restaurantes via API
+        async function carregarRestaurantes() {
+            const tbody = document.getElementById('restaurantes-list');
+            try {
+                const response = await fetch('/api/restaurantes');
+                if (!response.ok) throw new Error('Erro ao carregar');
+                const restaurantes = await response.json();
+
+                if (restaurantes.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty">Nenhum restaurante cadastrado.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = restaurantes.map(r => `
+                    <tr>
+                        <td>#${r.id}</td>
+                        <td>${r.nome}</td>
+                        <td>${r.email}</td>
+                        <td>${r.telefone || '—'}</td>
+                        <td>
+                            <a href="/qrcodes/${r.id}" class="btn-sm" target="_blank">📱 QR Codes</a>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error(error);
+                tbody.innerHTML = '<tr><td colspan="5" class="empty">Erro ao carregar restaurantes.</td></tr>';
+            }
         }
-        function abrirModal() { document.getElementById('modal').classList.add('active'); }
-        function fecharModal() { document.getElementById('modal').classList.remove('active'); }
-        async function salvar() {
+
+        // Abre o modal
+        function abrirModal() {
+            document.getElementById('modal-restaurante').classList.add('active');
+        }
+
+        // Fecha o modal
+        function fecharModal() {
+            document.getElementById('modal-restaurante').classList.remove('active');
+            // Limpa os campos
+            document.getElementById('rest-nome').value = '';
+            document.getElementById('rest-email').value = '';
+            document.getElementById('rest-telefone').value = '';
+            document.getElementById('rest-endereco').value = '';
+            document.getElementById('admin-nome').value = '';
+            document.getElementById('admin-email').value = '';
+            document.getElementById('admin-senha').value = '';
+        }
+
+        // Envia os dados do novo restaurante
+        async function salvarRestaurante() {
             const dados = {
-                nome: document.getElementById('nome').value,
-                email: document.getElementById('email').value,
-                admin_nome: document.getElementById('admin_nome').value,
-                admin_email: document.getElementById('admin_email').value,
-                admin_senha: document.getElementById('admin_senha').value
+                nome: document.getElementById('rest-nome').value.trim(),
+                email: document.getElementById('rest-email').value.trim(),
+                telefone: document.getElementById('rest-telefone').value.trim() || null,
+                endereco: document.getElementById('rest-endereco').value.trim() || null,
+                admin_nome: document.getElementById('admin-nome').value.trim(),
+                admin_email: document.getElementById('admin-email').value.trim(),
+                admin_senha: document.getElementById('admin-senha').value.trim()
             };
-            const res = await fetch('/api/restaurantes', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(dados)
-            });
-            const result = await res.json();
-            if (result.success) { fecharModal(); carregar(); }
-            else alert('Erro: ' + result.error);
+
+            // Validação básica
+            if (!dados.nome || !dados.email || !dados.admin_nome || !dados.admin_email || !dados.admin_senha) {
+                alert('Preencha todos os campos obrigatórios.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/restaurantes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    fecharModal();
+                    carregarRestaurantes(); // recarrega a lista
+                } else {
+                    alert('Erro: ' + (result.error || 'Não foi possível criar o restaurante.'));
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Erro de conexão. Tente novamente.');
+            }
         }
-        carregar();
+
+        // Carrega a lista ao iniciar
+        carregarRestaurantes();
     </script>
 </body>
 </html>

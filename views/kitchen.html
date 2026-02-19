@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cozinha - Painel de Pedidos</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <!-- Socket.IO client -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -12,142 +13,170 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
             background: #1a1a1a;
-            color: white;
+            color: #e0e0e0;
             padding: 20px;
         }
-        
+
+        /* Cabeçalho */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
-            padding-bottom: 20px;
+            padding-bottom: 15px;
             border-bottom: 2px solid #333;
         }
-        
+
         .header h1 {
-            font-size: 32px;
+            font-size: 28px;
             color: #ff6b6b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        
+
         .stats {
-            background: #333;
+            background: #2d2d2d;
             padding: 10px 20px;
-            border-radius: 10px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #ffd700;
         }
-        
+
+        /* Grid de pedidos */
         .orders-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 20px;
         }
-        
+
+        /* Cartão de pedido */
         .order-card {
             background: #2d2d2d;
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             border-left: 5px solid;
+            transition: transform 0.2s;
         }
-        
+
+        .order-card:hover {
+            transform: translateY(-5px);
+        }
+
         .order-card.pendente { border-left-color: #ffc107; }
         .order-card.preparando { border-left-color: #17a2b8; }
         .order-card.pronto { border-left-color: #28a745; }
-        
+
+        /* Cabeçalho do cartão */
         .order-header {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 1px solid #444;
         }
-        
-        .order-info {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
+
         .order-id {
             font-weight: bold;
             color: #ff6b6b;
+            background: #3a3a3a;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 14px;
         }
-        
-        .order-table {
+
+        .order-mesa {
             background: #333;
-            padding: 5px 10px;
-            border-radius: 5px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffd700;
         }
-        
-        .order-client {
+
+        .order-cliente {
             background: #444;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #ccc;
+            width: 100%;
+            margin-top: 8px;
         }
-        
+
         .order-time {
-            color: #999;
-            font-size: 14px;
+            color: #aaa;
+            font-size: 13px;
         }
-        
+
+        /* Lista de itens */
         .order-items {
             margin: 15px 0;
             max-height: 200px;
             overflow-y: auto;
+            padding-right: 5px;
         }
-        
+
         .order-item {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
             border-bottom: 1px dashed #444;
+            font-size: 14px;
         }
-        
+
         .item-quantity {
             background: #444;
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 12px;
+            font-weight: bold;
+            color: #ffd700;
         }
-        
+
         .item-name {
             flex: 1;
             margin-left: 10px;
+            color: #f0f0f0;
         }
-        
+
         .item-price {
             color: #ff6b6b;
         }
-        
+
+        /* Observação */
         .order-observation {
             background: #333;
             padding: 10px;
             border-radius: 8px;
             margin: 10px 0;
-            font-size: 14px;
+            font-size: 13px;
             color: #ffd700;
             border-left: 3px solid #ffd700;
         }
-        
+
+        /* Total */
         .order-total {
             font-size: 18px;
             font-weight: bold;
             text-align: right;
-            margin: 10px 0;
+            margin: 10px 0 15px;
             color: #ff6b6b;
         }
-        
+
+        /* Botões de ação */
         .order-actions {
             display: flex;
             gap: 10px;
-            margin-top: 15px;
         }
-        
+
         .btn {
             flex: 1;
             padding: 12px;
@@ -155,95 +184,135 @@
             border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: background 0.2s, transform 0.1s;
+            font-size: 14px;
         }
-        
+
         .btn:hover {
-            transform: translateY(-2px);
+            transform: scale(1.02);
         }
-        
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
         .btn-primary {
             background: #007bff;
             color: white;
         }
-        
+
+        .btn-primary:hover {
+            background: #0069d9;
+        }
+
         .btn-success {
             background: #28a745;
             color: white;
         }
-        
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
         .btn-warning {
             background: #ffc107;
             color: black;
         }
-        
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        /* Estado vazio */
         .empty-state {
             text-align: center;
             padding: 50px;
-            color: #666;
+            color: #888;
             font-size: 18px;
+            grid-column: 1 / -1;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            .orders-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>👨‍🍳 Cozinha - Painel de Pedidos</h1>
+        <h1>
+            <span>👨‍🍳</span> Cozinha - Painel de Pedidos
+        </h1>
         <div class="stats" id="stats">
             Pendentes: 0 | Preparando: 0 | Prontos: 0
         </div>
     </div>
-    
+
+    <!-- Container dos pedidos -->
     <div class="orders-grid" id="orders-grid">
         <div class="empty-state">Aguardando pedidos...</div>
     </div>
-    
-    <audio id="notification-sound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3"></audio>
-    
+
+    <!-- Áudio de notificação (opcional) -->
+    <audio id="notification-sound" preload="auto" style="display: none;">
+        <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
+    </audio>
+
     <script>
+        // Inicializa o Socket.IO
         const socket = io();
-        
-        socket.emit('join_kitchen');
-        
-        socket.on('novo_pedido', (pedido) => {
-            document.getElementById('notification-sound').play();
-            loadOrders();
-        });
-        
-        socket.on('pedido_atualizado', () => {
-            loadOrders();
-        });
-        
+
+        // Elementos do DOM
+        const ordersGrid = document.getElementById('orders-grid');
+        const statsDiv = document.getElementById('stats');
+        const notificationSound = document.getElementById('notification-sound');
+
+        // Função para carregar pedidos da API
         async function loadOrders() {
             try {
                 const response = await fetch('/api/pedidos/ativos');
+                if (!response.ok) throw new Error('Erro ao buscar pedidos');
                 const pedidos = await response.json();
-                
                 renderOrders(pedidos);
                 updateStats(pedidos);
             } catch (error) {
                 console.error('Erro ao carregar pedidos:', error);
+                ordersGrid.innerHTML = '<div class="empty-state">Erro ao carregar pedidos. Tente novamente.</div>';
             }
         }
-        
+
+        // Renderiza os pedidos na tela
         function renderOrders(pedidos) {
-            const grid = document.getElementById('orders-grid');
-            
-            if (pedidos.length === 0) {
-                grid.innerHTML = '<div class="empty-state">🎉 Nenhum pedido no momento</div>';
+            if (!pedidos || pedidos.length === 0) {
+                ordersGrid.innerHTML = '<div class="empty-state">🎉 Nenhum pedido no momento</div>';
                 return;
             }
-            
-            grid.innerHTML = pedidos.map(p => `
+
+            ordersGrid.innerHTML = pedidos.map(p => `
                 <div class="order-card ${p.status}" data-id="${p.id}">
                     <div class="order-header">
-                        <div class="order-info">
-                            <span class="order-id">#${p.id}</span>
-                            <span class="order-table">Mesa ${p.mesa_numero}</span>
-                            <span class="order-client">👤 ${p.cliente_nome || 'Cliente'}</span>
-                        </div>
-                        <div class="order-time">${new Date(p.hora_pedido).toLocaleTimeString()}</div>
+                        <span class="order-id">#${p.id}</span>
+                        <span class="order-mesa">Mesa ${p.mesa_numero || '—'}</span>
+                        <span class="order-time">${new Date(p.hora_pedido).toLocaleTimeString()}</span>
+                        <span class="order-cliente">👤 ${p.cliente_nome || 'Cliente'}</span>
                     </div>
-                    
+
                     <div class="order-items">
                         ${p.itens.map(item => `
                             <div class="order-item">
@@ -253,54 +322,77 @@
                             </div>
                         `).join('')}
                     </div>
-                    
+
                     ${p.observacao ? `
                         <div class="order-observation">
                             📝 ${p.observacao}
                         </div>
                     ` : ''}
-                    
+
                     <div class="order-total">
                         Total: R$ ${p.total.toFixed(2)}
                     </div>
-                    
+
                     <div class="order-actions">
                         ${p.status === 'pendente' ? 
-                            '<button class="btn btn-primary" onclick="updateStatus(' + p.id + ', \'preparando\')">Iniciar Preparo</button>' : ''}
+                            `<button class="btn btn-primary" onclick="updateStatus(${p.id}, 'preparando')">▶️ Iniciar Preparo</button>` : ''}
                         ${p.status === 'preparando' ? 
-                            '<button class="btn btn-success" onclick="updateStatus(' + p.id + ', \'pronto\')">Finalizar</button>' : ''}
+                            `<button class="btn btn-success" onclick="updateStatus(${p.id}, 'pronto')">✅ Finalizar</button>` : ''}
+                        ${p.status === 'pronto' ? 
+                            `<button class="btn btn-secondary" disabled>✅ Pronto</button>` : ''}
                     </div>
                 </div>
             `).join('');
         }
-        
+
+        // Atualiza as estatísticas do cabeçalho
         function updateStats(pedidos) {
             const pendentes = pedidos.filter(p => p.status === 'pendente').length;
             const preparando = pedidos.filter(p => p.status === 'preparando').length;
             const prontos = pedidos.filter(p => p.status === 'pronto').length;
-            
-            document.getElementById('stats').innerHTML = 
-                `Pendentes: ${pendentes} | Preparando: ${preparando} | Prontos: ${prontos}`;
+            statsDiv.innerHTML = `Pendentes: ${pendentes} | Preparando: ${preparando} | Prontos: ${prontos}`;
         }
-        
-        async function updateStatus(id, status) {
+
+        // Atualiza o status de um pedido via API
+        async function updateStatus(pedidoId, novoStatus) {
             try {
-                const response = await fetch(`/api/pedidos/${id}/status`, {
+                const response = await fetch(`/api/pedidos/${pedidoId}/status`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status })
+                    body: JSON.stringify({ status: novoStatus })
                 });
-                
-                if (response.ok) {
-                    loadOrders();
-                }
+                if (!response.ok) throw new Error('Erro ao atualizar status');
+                // A atualização via socket fará a interface ser recarregada
             } catch (error) {
                 console.error('Erro ao atualizar status:', error);
+                alert('Não foi possível alterar o status. Tente novamente.');
             }
         }
-        
+
+        // Socket.IO: ouvir novos pedidos
+        socket.on('novo_pedido', (pedido) => {
+            console.log('Novo pedido recebido:', pedido);
+            // Tocar som de notificação
+            notificationSound.play().catch(e => console.log('Áudio bloqueado pelo navegador'));
+            loadOrders(); // recarrega a lista
+        });
+
+        // Socket.IO: ouvir atualizações de pedidos
+        socket.on('pedido_atualizado', (data) => {
+            console.log('Pedido atualizado:', data);
+            loadOrders();
+        });
+
+        // Socket.IO: conectar à sala da cozinha
+        socket.on('connect', () => {
+            socket.emit('join_kitchen');
+        });
+
+        // Carrega pedidos ao iniciar a página
         loadOrders();
-        setInterval(loadOrders, 10000);
+
+        // Opcional: recarregar a cada 30 segundos como fallback
+        setInterval(loadOrders, 30000);
     </script>
 </body>
 </html>

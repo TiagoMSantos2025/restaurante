@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Admin</title>
+    <title>Login - Sistema Restaurante</title>
     <style>
         * {
             margin: 0;
@@ -11,47 +11,50 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
-        
+
         .login-container {
             background: white;
             border-radius: 20px;
             padding: 40px;
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
         }
-        
+
         h1 {
             color: #333;
             text-align: center;
             margin-bottom: 10px;
+            font-size: 28px;
         }
-        
+
         .subtitle {
             text-align: center;
             color: #666;
             margin-bottom: 30px;
+            font-size: 16px;
         }
-        
+
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         label {
             display: block;
             margin-bottom: 5px;
             color: #555;
             font-weight: 500;
         }
-        
+
         input {
             width: 100%;
             padding: 12px 15px;
@@ -60,12 +63,12 @@
             font-size: 16px;
             transition: border-color 0.3s;
         }
-        
+
         input:focus {
             outline: none;
             border-color: #667eea;
         }
-        
+
         button {
             width: 100%;
             padding: 14px;
@@ -76,46 +79,75 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        
+
         button:hover {
             transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
-        
-        .back-link {
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
             text-align: center;
-            margin-top: 20px;
+            border: 1px solid #fcc;
+            display: none;
         }
-        
-        .back-link a {
+
+        .info {
+            margin-top: 25px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .info p {
+            margin: 5px 0;
+        }
+
+        .info strong {
             color: #667eea;
-            text-decoration: none;
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <h1>🔐 Área Administrativa</h1>
-        <div class="subtitle">Faça login para acessar o painel</div>
-        
-        <form method="POST" action="/login">
+        <h1>🍽️ Sistema Restaurante</h1>
+        <div class="subtitle">Acesse o painel administrativo</div>
+
+        <div class="error" id="error-message">Email ou senha inválidos</div>
+
+        <form action="/login" method="POST">
             <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="email" value="admin@restaurante.com" required>
+                <label>E-mail</label>
+                <input type="email" name="email" placeholder="seu@email.com" required autofocus>
             </div>
-            
             <div class="form-group">
                 <label>Senha</label>
-                <input type="password" name="senha" value="admin123" required>
+                <input type="password" name="senha" placeholder="••••••••" required>
             </div>
-            
             <button type="submit">Entrar</button>
         </form>
-        
-        <div class="back-link">
-            <a href="/">← Voltar para o início</a>
+
+        <div class="info">
+            <p><strong>Super Admin:</strong> super@admin.com / super123</p>
+            <p><strong>Admin:</strong> admin@restaurante.com / admin123</p>
+            <p style="font-size: 12px; margin-top: 10px;">Use essas credenciais para teste</p>
         </div>
     </div>
+
+    <script>
+        // Exibe mensagem de erro se houver parâmetro ?erro=1 na URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('erro')) {
+            document.getElementById('error-message').style.display = 'block';
+        }
+    </script>
 </body>
 </html>

@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cardápio - Restaurante</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <title>Cardápio Digital</title>
+    <!-- Socket.IO para atualizações em tempo real (opcional) -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -12,11 +13,12 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
             background: #f8f9fa;
         }
-        
+
+        /* Cabeçalho */
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -26,7 +28,7 @@
             z-index: 100;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
+
         .header-content {
             max-width: 1200px;
             margin: 0 auto;
@@ -35,48 +37,26 @@
             align-items: center;
             flex-wrap: wrap;
         }
-        
+
         .header h1 {
             font-size: 24px;
         }
-        
+
         .cliente-info {
             background: rgba(255,255,255,0.2);
             padding: 8px 15px;
             border-radius: 20px;
             font-size: 14px;
         }
-        
+
+        /* Container principal */
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
-        
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .tab {
-            padding: 10px 20px;
-            background: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-            flex: 1;
-            min-width: 120px;
-        }
-        
-        .tab.active {
-            background: #667eea;
-            color: white;
-        }
-        
+
+        /* Categorias */
         .categories {
             display: flex;
             gap: 10px;
@@ -85,7 +65,7 @@
             margin-bottom: 20px;
             scrollbar-width: thin;
         }
-        
+
         .category-btn {
             padding: 10px 20px;
             background: white;
@@ -96,20 +76,21 @@
             white-space: nowrap;
             transition: all 0.3s;
         }
-        
+
         .category-btn.active {
             background: #667eea;
             color: white;
             border-color: #667eea;
         }
-        
+
+        /* Grid de produtos */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
             margin-bottom: 100px;
         }
-        
+
         .product-card {
             background: white;
             border-radius: 15px;
@@ -119,17 +100,17 @@
             transition: transform 0.3s, box-shadow 0.3s;
             border: 2px solid transparent;
         }
-        
+
         .product-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
-        
+
         .product-card.destaque {
             border-color: #ffc107;
             background: #fffbf0;
         }
-        
+
         .product-name {
             font-size: 18px;
             font-weight: bold;
@@ -138,26 +119,26 @@
             display: flex;
             justify-content: space-between;
         }
-        
+
         .product-description {
             color: #666;
             font-size: 14px;
             margin-bottom: 15px;
             line-height: 1.5;
         }
-        
+
         .product-price {
             font-size: 24px;
             font-weight: bold;
             color: #28a745;
         }
-        
+
         .product-price small {
             font-size: 14px;
             font-weight: normal;
             color: #999;
         }
-        
+
         .product-ingredientes {
             font-size: 12px;
             color: #999;
@@ -165,7 +146,7 @@
             padding-top: 10px;
             border-top: 1px dashed #eee;
         }
-        
+
         .product-tempo {
             font-size: 12px;
             color: #667eea;
@@ -174,74 +155,8 @@
             align-items: center;
             gap: 5px;
         }
-        
-        .pedidos-section {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        
-        .pedidos-section h2 {
-            margin-bottom: 15px;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .pedido-card {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-left: 5px solid;
-        }
-        
-        .pedido-card.pendente { border-left-color: #ffc107; }
-        .pedido-card.preparando { border-left-color: #17a2b8; }
-        .pedido-card.pronto { border-left-color: #28a745; }
-        .pedido-card.entregue { border-left-color: #6c757d; }
-        
-        .pedido-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        .pedido-status {
-            padding: 3px 10px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        
-        .status-pendente { background: #fff3cd; color: #856404; }
-        .status-preparando { background: #cce5ff; color: #004085; }
-        .status-pronto { background: #d4edda; color: #155724; }
-        .status-entregue { background: #e2e3e5; color: #383d41; }
-        
-        .pedido-itens {
-            margin: 10px 0;
-        }
-        
-        .pedido-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-        }
-        
-        .pedido-total {
-            font-weight: bold;
-            text-align: right;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #dee2e6;
-        }
-        
+
+        /* Carrinho */
         .cart {
             position: fixed;
             bottom: 20px;
@@ -253,11 +168,11 @@
             display: none;
             z-index: 1000;
         }
-        
+
         .cart.show {
             display: block;
         }
-        
+
         .cart-header {
             background: #667eea;
             color: white;
@@ -267,13 +182,13 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .cart-items {
             max-height: 300px;
             overflow-y: auto;
             padding: 15px;
         }
-        
+
         .cart-item {
             display: flex;
             justify-content: space-between;
@@ -281,26 +196,26 @@
             padding: 10px 0;
             border-bottom: 1px solid #eee;
         }
-        
+
         .cart-item-info {
             flex: 2;
         }
-        
+
         .cart-item-name {
             font-weight: 500;
         }
-        
+
         .cart-item-price {
             color: #28a745;
             font-weight: bold;
         }
-        
+
         .cart-item-actions {
             display: flex;
             gap: 5px;
             align-items: center;
         }
-        
+
         .cart-item-actions button {
             width: 30px;
             height: 30px;
@@ -309,17 +224,17 @@
             cursor: pointer;
             font-weight: bold;
         }
-        
+
         .cart-item-actions .remove {
             background: #dc3545;
             color: white;
         }
-        
+
         .cart-item-actions .add {
             background: #28a745;
             color: white;
         }
-        
+
         .cart-total {
             padding: 15px;
             border-top: 2px solid #eee;
@@ -328,11 +243,11 @@
             display: flex;
             justify-content: space-between;
         }
-        
+
         .cart-footer {
             padding: 15px;
         }
-        
+
         .cart-footer textarea {
             width: 100%;
             padding: 10px;
@@ -341,7 +256,7 @@
             border-radius: 8px;
             resize: vertical;
         }
-        
+
         .btn-order {
             width: 100%;
             padding: 15px;
@@ -354,11 +269,11 @@
             cursor: pointer;
             transition: background 0.3s;
         }
-        
+
         .btn-order:hover {
             background: #218838;
         }
-        
+
         .cart-toggle {
             position: fixed;
             bottom: 20px;
@@ -376,7 +291,7 @@
             z-index: 999;
             font-size: 24px;
         }
-        
+
         .cart-toggle span {
             position: absolute;
             top: -5px;
@@ -391,7 +306,8 @@
             align-items: center;
             justify-content: center;
         }
-        
+
+        /* Modal de sucesso */
         .modal {
             display: none;
             position: fixed;
@@ -404,11 +320,11 @@
             justify-content: center;
             z-index: 2000;
         }
-        
+
         .modal.active {
             display: flex;
         }
-        
+
         .modal-content {
             background: white;
             border-radius: 15px;
@@ -417,18 +333,18 @@
             width: 90%;
             text-align: center;
         }
-        
+
         .modal-content h3 {
             color: #28a745;
             margin-bottom: 15px;
             font-size: 24px;
         }
-        
+
         .modal-content p {
             color: #666;
             margin-bottom: 10px;
         }
-        
+
         .modal-content button {
             padding: 12px 30px;
             background: #667eea;
@@ -439,28 +355,14 @@
             cursor: pointer;
             font-size: 16px;
         }
-        
-        .valor-total-mesa {
-            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        
+
+        /* Responsividade */
         @media (max-width: 768px) {
             .cart {
                 width: 100%;
                 right: 0;
                 bottom: 0;
                 border-radius: 15px 15px 0 0;
-            }
-            
-            .tab {
-                min-width: calc(50% - 5px);
             }
         }
     </style>
@@ -472,62 +374,42 @@
             <div class="cliente-info" id="clienteInfo">Carregando...</div>
         </div>
     </div>
-    
+
     <div class="container">
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('cardapio')">🍽️ Cardápio</button>
-            <button class="tab" onclick="showTab('pedidos')">📋 Meus Pedidos</button>
-        </div>
-        
-        <!-- Tab Cardápio -->
-        <div id="cardapio-tab">
-            <div class="categories" id="categories"></div>
-            <div class="products-grid" id="products-grid"></div>
-        </div>
-        
-        <!-- Tab Pedidos -->
-        <div id="pedidos-tab" style="display: none;">
-            <div class="valor-total-mesa" id="valorTotalMesa">
-                R$ 0,00
-            </div>
-            
-            <div class="pedidos-section">
-                <h2>🔄 Pedidos em Andamento</h2>
-                <div id="pedidos-ativos"></div>
-            </div>
-            
-            <div class="pedidos-section">
-                <h2>✅ Pedidos Entregues</h2>
-                <div id="pedidos-entregues"></div>
-            </div>
-        </div>
+        <!-- Categorias -->
+        <div class="categories" id="categories"></div>
+
+        <!-- Produtos -->
+        <div class="products-grid" id="products-grid"></div>
     </div>
-    
+
+    <!-- Botão do Carrinho -->
     <div class="cart-toggle" onclick="toggleCart()">
         🛒
         <span id="cart-count">0</span>
     </div>
-    
+
+    <!-- Carrinho -->
     <div class="cart" id="cart">
         <div class="cart-header">
             <h3>Seu Pedido</h3>
             <button onclick="toggleCart()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">×</button>
         </div>
-        
+
         <div class="cart-items" id="cart-items"></div>
-        
+
         <div class="cart-total">
             <span>Total:</span>
             <span id="cart-total">R$ 0,00</span>
         </div>
-        
+
         <div class="cart-footer">
             <textarea id="order-observation" placeholder="Observação (ex: sem cebola, ponto da carne...)"></textarea>
             <button class="btn-order" onclick="sendOrder()">Finalizar Pedido</button>
         </div>
     </div>
-    
+
+    <!-- Modal de Sucesso -->
     <div class="modal" id="success-modal">
         <div class="modal-content">
             <h3>✅ Pedido enviado!</h3>
@@ -536,117 +418,115 @@
             <button onclick="closeModal()">OK</button>
         </div>
     </div>
-    
+
     <script>
+        // Inicializa o Socket.IO (opcional, para receber atualizações)
         const socket = io();
-        
-        // Pegar parâmetros da URL
+
+        // Pega os parâmetros da URL (mesa, nome, restauranteId)
         const urlParams = new URLSearchParams(window.location.search);
-        const mesa = urlParams.get('mesa');
-        const nome = decodeURIComponent(urlParams.get('nome') || '');
-        
+        const mesa = urlParams.get('mesa') || '01';
+        const nome = decodeURIComponent(urlParams.get('nome') || 'Cliente');
+        const restauranteId = urlParams.get('restauranteId') || '1'; // fallback
+
+        // Atualiza o cabeçalho com as informações do cliente
         document.getElementById('clienteInfo').innerHTML = `Mesa ${mesa} • ${nome}`;
-        
-        let products = [];
-        let categories = [];
+
+        let produtos = [];
+        let categorias = [];
         let cart = [];
-        let pedidos = [];
-        
-        // Socket events
-        socket.on('novo_pedido', () => {
-            carregarPedidos();
-        });
-        
-        socket.on('pedido_atualizado', () => {
-            carregarPedidos();
-        });
-        
-        // Carregar produtos
-        async function loadProducts() {
+
+        // Carrega os produtos do restaurante
+        async function carregarProdutos() {
             try {
-                const response = await fetch('/api/produtos');
-                products = await response.json();
-                
+                // Ajuste a URL conforme sua API: pode ser /api/produtos?restauranteId=...
+                const response = await fetch(`/api/produtos?restauranteId=${restauranteId}`);
+                if (!response.ok) throw new Error('Erro ao carregar produtos');
+                produtos = await response.json();
+
+                // Extrai categorias únicas
                 const cats = {};
-                products.forEach(p => {
+                produtos.forEach(p => {
                     if (!cats[p.categoria_id]) {
                         cats[p.categoria_id] = {
                             id: p.categoria_id,
-                            nome: p.categoria_nome
+                            nome: p.categoria_nome || 'Outros'
                         };
                     }
                 });
-                
-                categories = Object.values(cats);
+                categorias = Object.values(cats);
                 renderCategories();
                 renderProducts();
             } catch (error) {
-                console.error('Erro ao carregar produtos:', error);
+                console.error(error);
+                document.getElementById('products-grid').innerHTML = '<p>Erro ao carregar cardápio.</p>';
             }
         }
-        
+
+        // Renderiza os botões de categorias
         function renderCategories() {
             const container = document.getElementById('categories');
-            container.innerHTML = '<button class="category-btn active" onclick="filterByCategory(\'all\')">Todos</button>';
-            
-            categories.forEach(cat => {
-                container.innerHTML += `<button class="category-btn" onclick="filterByCategory(${cat.id})">${cat.nome}</button>`;
+            container.innerHTML = '<button class="category-btn active" onclick="filtrarPorCategoria(\'all\')">Todos</button>';
+            categorias.forEach(cat => {
+                container.innerHTML += `<button class="category-btn" onclick="filtrarPorCategoria(${cat.id})">${cat.nome}</button>`;
             });
         }
-        
-        function filterByCategory(categoryId) {
+
+        // Filtra produtos por categoria
+        function filtrarPorCategoria(categoriaId) {
             document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-            
-            if (categoryId === 'all') {
-                renderProducts(products);
+
+            if (categoriaId === 'all') {
+                renderProducts(produtos);
             } else {
-                const filtered = products.filter(p => p.categoria_id === categoryId);
-                renderProducts(filtered);
+                const filtrados = produtos.filter(p => p.categoria_id == categoriaId);
+                renderProducts(filtrados);
             }
         }
-        
-        function renderProducts(productsToRender = products) {
+
+        // Renderiza os produtos no grid
+        function renderProducts(produtosParaRender = produtos) {
             const container = document.getElementById('products-grid');
-            container.innerHTML = '';
-            
-            productsToRender.forEach(p => {
-                const destaqueClass = p.destaque ? 'destaque' : '';
-                container.innerHTML += `
-                    <div class="product-card ${destaqueClass}" onclick="addToCart(${p.id})">
-                        <div class="product-name">
-                            <span>${p.nome}</span>
-                            ${p.destaque ? '<span class="produto-destaque">⭐</span>' : ''}
-                        </div>
-                        <div class="product-description">${p.descricao || ''}</div>
-                        <div class="product-price">R$ ${p.preco.toFixed(2)}</div>
-                        ${p.ingredientes ? `<div class="product-ingredientes">🧂 ${p.ingredientes}</div>` : ''}
-                        <div class="product-tempo">⏱️ Preparo: ${p.tempo_preparo || 15} min</div>
+            if (produtosParaRender.length === 0) {
+                container.innerHTML = '<p>Nenhum produto disponível.</p>';
+                return;
+            }
+            container.innerHTML = produtosParaRender.map(p => `
+                <div class="product-card ${p.destaque ? 'destaque' : ''}" onclick="addToCart(${p.id})">
+                    <div class="product-name">
+                        <span>${p.nome}</span>
+                        ${p.destaque ? '<span>⭐</span>' : ''}
                     </div>
-                `;
-            });
+                    <div class="product-description">${p.descricao || ''}</div>
+                    <div class="product-price">R$ ${p.preco.toFixed(2)}</div>
+                    ${p.ingredientes ? `<div class="product-ingredientes">🧂 ${p.ingredientes}</div>` : ''}
+                    <div class="product-tempo">⏱️ Preparo: ${p.tempo_preparo || 15} min</div>
+                </div>
+            `).join('');
         }
-        
-        function addToCart(productId) {
-            const product = products.find(p => p.id === productId);
-            const existingItem = cart.find(item => item.id === productId);
-            
-            if (existingItem) {
-                existingItem.quantity++;
+
+        // Adiciona item ao carrinho
+        function addToCart(produtoId) {
+            const produto = produtos.find(p => p.id === produtoId);
+            const itemExistente = cart.find(item => item.id === produtoId);
+
+            if (itemExistente) {
+                itemExistente.quantity++;
             } else {
                 cart.push({
-                    id: product.id,
-                    name: product.nome,
-                    price: product.preco,
+                    id: produto.id,
+                    name: produto.nome,
+                    price: produto.preco,
                     quantity: 1
                 });
             }
-            
             updateCart();
         }
-        
-        function removeFromCart(productId) {
-            const index = cart.findIndex(item => item.id === productId);
+
+        // Remove item do carrinho (diminui quantidade ou remove)
+        function removeFromCart(produtoId) {
+            const index = cart.findIndex(item => item.id === produtoId);
             if (index !== -1) {
                 if (cart[index].quantity > 1) {
                     cart[index].quantity--;
@@ -656,21 +536,21 @@
             }
             updateCart();
         }
-        
+
+        // Atualiza a interface do carrinho
         function updateCart() {
-            const cartItems = document.getElementById('cart-items');
-            const cartCount = document.getElementById('cart-count');
-            const cartTotal = document.getElementById('cart-total');
-            
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            cartCount.textContent = totalItems;
-            
-            cartItems.innerHTML = '';
+            const cartItemsDiv = document.getElementById('cart-items');
+            const cartCountSpan = document.getElementById('cart-count');
+            const cartTotalSpan = document.getElementById('cart-total');
+
+            const totalItens = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCountSpan.textContent = totalItens;
+
+            cartItemsDiv.innerHTML = '';
             let total = 0;
-            
             cart.forEach(item => {
                 total += item.price * item.quantity;
-                cartItems.innerHTML += `
+                cartItemsDiv.innerHTML += `
                     <div class="cart-item">
                         <div class="cart-item-info">
                             <div class="cart-item-name">${item.name}</div>
@@ -684,164 +564,72 @@
                     </div>
                 `;
             });
-            
-            cartTotal.textContent = `R$ ${total.toFixed(2)}`;
+            cartTotalSpan.textContent = `R$ ${total.toFixed(2)}`;
         }
-        
+
+        // Envia o pedido para o backend
         async function sendOrder() {
             if (cart.length === 0) {
                 alert('Adicione itens ao carrinho');
                 return;
             }
-            
-            const observation = document.getElementById('order-observation').value;
-            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            
-            const order = {
+
+            const observacao = document.getElementById('order-observation').value;
+            const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+            const pedido = {
+                restauranteId: parseInt(restauranteId),
                 mesa: mesa,
                 cliente_nome: nome,
                 itens: cart,
                 total: total,
-                observacao: observation
+                observacao: observacao
             };
-            
+
             try {
                 const response = await fetch('/api/pedidos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(order)
+                    body: JSON.stringify(pedido)
                 });
-                
+
                 const data = await response.json();
-                
                 if (data.success) {
+                    // Limpa o carrinho
                     cart = [];
                     updateCart();
+                    // Fecha o carrinho e abre modal de sucesso
                     document.getElementById('cart').classList.remove('show');
                     document.getElementById('success-modal').classList.add('active');
-                    
-                    setTimeout(() => {
-                        carregarPedidos();
-                        showTab('pedidos');
-                    }, 2000);
+                    // Emite via socket (opcional)
+                    socket.emit('novo_pedido', pedido);
+                } else {
+                    alert('Erro ao enviar pedido: ' + (data.error || 'desconhecido'));
                 }
             } catch (error) {
-                console.error('Erro ao enviar pedido:', error);
-                alert('Erro ao enviar pedido. Tente novamente.');
+                console.error(error);
+                alert('Erro de conexão. Tente novamente.');
             }
         }
-        
-        async function carregarPedidos() {
-            try {
-                const response = await fetch('/api/pedidos/ativos');
-                const todosPedidos = await response.json();
-                
-                // Filtrar pedidos da mesa atual
-                pedidos = todosPedidos.filter(p => p.mesa_numero == mesa);
-                
-                renderPedidos();
-                calcularTotalMesa();
-            } catch (error) {
-                console.error('Erro ao carregar pedidos:', error);
-            }
-        }
-        
-        function renderPedidos() {
-            const ativos = pedidos.filter(p => ['pendente', 'preparando', 'pronto'].includes(p.status));
-            const entregues = pedidos.filter(p => p.status === 'entregue');
-            
-            const ativosDiv = document.getElementById('pedidos-ativos');
-            const entreguesDiv = document.getElementById('pedidos-entregues');
-            
-            if (ativos.length === 0) {
-                ativosDiv.innerHTML = '<p style="text-align: center; color: #999;">Nenhum pedido em andamento</p>';
-            } else {
-                ativosDiv.innerHTML = ativos.map(p => `
-                    <div class="pedido-card ${p.status}">
-                        <div class="pedido-header">
-                            <span>Pedido #${p.id}</span>
-                            <span class="pedido-status status-${p.status}">${p.status}</span>
-                        </div>
-                        <div class="pedido-itens">
-                            ${p.itens.map(i => `
-                                <div class="pedido-item">
-                                    <span>${i.quantity}x ${i.name}</span>
-                                    <span>R$ ${(i.price * i.quantity).toFixed(2)}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                        ${p.observacao ? `<p style="color: #ffc107; font-size: 14px;">📝 ${p.observacao}</p>` : ''}
-                        <div class="pedido-total">
-                            Total: R$ ${p.total.toFixed(2)}
-                        </div>
-                        <div style="font-size: 12px; color: #999; margin-top: 10px;">
-                            ${new Date(p.hora_pedido).toLocaleString()}
-                        </div>
-                    </div>
-                `).join('');
-            }
-            
-            if (entregues.length === 0) {
-                entreguesDiv.innerHTML = '<p style="text-align: center; color: #999;">Nenhum pedido entregue</p>';
-            } else {
-                entreguesDiv.innerHTML = entregues.map(p => `
-                    <div class="pedido-card entregue">
-                        <div class="pedido-header">
-                            <span>Pedido #${p.id}</span>
-                            <span class="pedido-status status-entregue">entregue</span>
-                        </div>
-                        <div class="pedido-itens">
-                            ${p.itens.map(i => `
-                                <div class="pedido-item">
-                                    <span>${i.quantity}x ${i.name}</span>
-                                    <span>R$ ${(i.price * i.quantity).toFixed(2)}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div class="pedido-total">
-                            Total: R$ ${p.total.toFixed(2)}
-                        </div>
-                        <div style="font-size: 12px; color: #999; margin-top: 10px;">
-                            ${new Date(p.hora_pedido).toLocaleString()}
-                        </div>
-                    </div>
-                `).join('');
-            }
-        }
-        
-        function calcularTotalMesa() {
-            const total = pedidos.reduce((sum, p) => sum + p.total, 0);
-            document.getElementById('valorTotalMesa').innerHTML = `💰 Total: R$ ${total.toFixed(2)}`;
-        }
-        
+
+        // Alterna visibilidade do carrinho
         function toggleCart() {
             document.getElementById('cart').classList.toggle('show');
         }
-        
+
+        // Fecha o modal de sucesso
         function closeModal() {
             document.getElementById('success-modal').classList.remove('active');
         }
-        
-        function showTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('#cardapio-tab, #pedidos-tab').forEach(t => t.style.display = 'none');
-            
-            if (tab === 'cardapio') {
-                document.querySelector('.tab[onclick="showTab(\'cardapio\')"]').classList.add('active');
-                document.getElementById('cardapio-tab').style.display = 'block';
-            } else {
-                document.querySelector('.tab[onclick="showTab(\'pedidos\')"]').classList.add('active');
-                document.getElementById('pedidos-tab').style.display = 'block';
-                carregarPedidos();
-            }
-        }
-        
-        // Inicialização
-        loadProducts();
-        carregarPedidos();
-        
-        // Atualizar a cada 30 segundos
-        setInterval(carregarPedidos, 30000);
+
+        // Inicializa
+        carregarProdutos();
+
+        // (Opcional) Escuta eventos do socket para atualizações em tempo real
+        socket.on('pedido_atualizado', (data) => {
+            // Pode mostrar alguma notificação se quiser
+            console.log('Pedido atualizado:', data);
+        });
     </script>
 </body>
 </html>

@@ -11,7 +11,7 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
@@ -20,40 +20,41 @@
             justify-content: center;
             padding: 20px;
         }
-        
+
         .container {
             background: white;
             border-radius: 20px;
             padding: 40px;
-            max-width: 400px;
             width: 100%;
+            max-width: 400px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.2);
         }
-        
+
         h1 {
             color: #333;
             text-align: center;
             margin-bottom: 10px;
             font-size: 28px;
         }
-        
+
         .subtitle {
             text-align: center;
             color: #666;
             margin-bottom: 30px;
+            font-size: 16px;
         }
-        
+
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         label {
             display: block;
             margin-bottom: 5px;
             color: #555;
             font-weight: 500;
         }
-        
+
         input {
             width: 100%;
             padding: 12px 15px;
@@ -62,12 +63,12 @@
             font-size: 16px;
             transition: border-color 0.3s;
         }
-        
+
         input:focus {
             outline: none;
             border-color: #667eea;
         }
-        
+
         button {
             width: 100%;
             padding: 14px;
@@ -78,47 +79,37 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        
+
         button:hover {
             transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
-        
+
         .info {
             margin-top: 20px;
             text-align: center;
             color: #999;
             font-size: 14px;
         }
-        
-        .mesas-disponiveis {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .mesas-disponiveis h3 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-        
-        .mesas-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-        
-        .mesa-item {
-            background: white;
-            border: 2px solid #e1e1e1;
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
             border-radius: 8px;
-            padding: 8px;
+            margin-bottom: 20px;
             text-align: center;
-            font-weight: bold;
-            color: #555;
+            border: 1px solid #fcc;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+            color: #667eea;
         }
     </style>
 </head>
@@ -126,42 +117,97 @@
     <div class="container">
         <h1>🍽️ Bem-vindo!</h1>
         <div class="subtitle">Digite seus dados para acessar o cardápio</div>
-        
-        <form method="POST" action="/acesso">
+
+        <div class="error" id="error-message"></div>
+
+        <form id="acesso-form">
             <div class="form-group">
                 <label>Número da Mesa</label>
-                <input type="text" name="mesa" placeholder="Ex: 01, 02, 03..." maxlength="2" required>
+                <input type="text" id="mesa" name="mesa" placeholder="Ex: 01, 02, 03..." maxlength="3" required>
             </div>
-            
+
             <div class="form-group">
                 <label>Seu Nome</label>
-                <input type="text" name="nome" placeholder="Digite seu nome" required>
+                <input type="text" id="nome" name="nome" placeholder="Digite seu nome" required>
             </div>
-            
+
             <button type="submit">Acessar Cardápio</button>
+            <div class="loading" id="loading">Processando...</div>
         </form>
-        
-        <div class="mesas-disponiveis">
-            <h3>Mesas disponíveis:</h3>
-            <div class="mesas-grid">
-                <div class="mesa-item">01</div>
-                <div class="mesa-item">02</div>
-                <div class="mesa-item">03</div>
-                <div class="mesa-item">04</div>
-                <div class="mesa-item">05</div>
-                <div class="mesa-item">06</div>
-                <div class="mesa-item">07</div>
-                <div class="mesa-item">08</div>
-                <div class="mesa-item">09</div>
-                <div class="mesa-item">10</div>
-                <div class="mesa-item">11</div>
-                <div class="mesa-item">12</div>
-            </div>
-        </div>
-        
+
         <div class="info">
-            <p>🔍 Escaneie o QR Code novamente se necessário</p>
+            <p>🔍 Escaneie o QR code novamente se necessário</p>
         </div>
     </div>
+
+    <script>
+        (function() {
+            // Extrai o restauranteId da URL (ex: /acesso/1 ou /acesso)
+            const pathParts = window.location.pathname.split('/');
+            let restauranteId = pathParts[pathParts.length - 1];
+            // Se o último segmento não for numérico, assume padrão 1
+            if (!/^\d+$/.test(restauranteId)) {
+                restauranteId = '1';
+            }
+
+            const form = document.getElementById('acesso-form');
+            const errorDiv = document.getElementById('error-message');
+            const loadingDiv = document.getElementById('loading');
+            const mesaInput = document.getElementById('mesa');
+            const nomeInput = document.getElementById('nome');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const mesa = mesaInput.value.trim();
+                const nome = nomeInput.value.trim();
+
+                if (!mesa || !nome) {
+                    showError('Preencha todos os campos.');
+                    return;
+                }
+
+                // Oculta erro anterior e mostra loading
+                errorDiv.style.display = 'none';
+                loadingDiv.style.display = 'block';
+
+                try {
+                    const response = await fetch(`/acesso/${restauranteId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ mesa, nome })
+                    });
+
+                    if (response.redirected) {
+                        // Se o servidor redirecionou, segue o redirecionamento
+                        window.location.href = response.url;
+                    } else {
+                        // Se não redirecionou, pode ser um erro
+                        const text = await response.text();
+                        if (response.ok) {
+                            // Se for ok mas não redirecionou, tenta interpretar como HTML
+                            document.open();
+                            document.write(text);
+                            document.close();
+                        } else {
+                            showError('Erro ao acessar a mesa. Verifique o número.');
+                        }
+                    }
+                } catch (error) {
+                    console.error(error);
+                    showError('Erro de conexão. Tente novamente.');
+                } finally {
+                    loadingDiv.style.display = 'none';
+                }
+            });
+
+            function showError(msg) {
+                errorDiv.textContent = msg;
+                errorDiv.style.display = 'block';
+            }
+        })();
+    </script>
 </body>
 </html>
