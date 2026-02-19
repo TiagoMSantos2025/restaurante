@@ -1,0 +1,22 @@
+# Dependências
+node_modules/
+
+# Banco de Dados e Arquivos de Dados
+*.db
+*.sqlite
+database/
+*.log
+
+# Arquivos de ambiente
+.env
+.env.local
+
+# Pastas de sistema e build
+.DS_Store
+Thumbs.db
+backups/
+reports/
+uploads/
+
+# Logs do Railway
+*.railway

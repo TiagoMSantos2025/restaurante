@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cozinha - Painel de Pedidos</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #1a1a1a;
+            color: white;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #333;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            color: #ff6b6b;
+        }
+        
+        .stats {
+            background: #333;
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+        
+        .orders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .order-card {
+            background: #2d2d2d;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border-left: 5px solid;
+        }
+        
+        .order-card.pendente { border-left-color: #ffc107; }
+        .order-card.preparando { border-left-color: #17a2b8; }
+        .order-card.pronto { border-left-color: #28a745; }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
+        }
+        
+        .order-info {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .order-id {
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+        
+        .order-table {
+            background: #333;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        
+        .order-client {
+            background: #444;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .order-time {
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .order-items {
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #444;
+        }
+        
+        .item-quantity {
+            background: #444;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .item-name {
+            flex: 1;
+            margin-left: 10px;
+        }
+        
+        .item-price {
+            color: #ff6b6b;
+        }
+        
+        .order-observation {
+            background: #333;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+            color: #ffd700;
+            border-left: 3px solid #ffd700;
+        }
+        
+        .order-total {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: right;
+            margin: 10px 0;
+            color: #ff6b6b;
+        }
+        
+        .order-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: black;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👨‍🍳 Cozinha - Painel de Pedidos</h1>
+        <div class="stats" id="stats">
+            Pendentes: 0 | Preparando: 0 | Prontos: 0
+        </div>
+    </div>
+    
+    <div class="orders-grid" id="orders-grid">
+        <div class="empty-state">Aguardando pedidos...</div>
+    </div>
+    
+    <audio id="notification-sound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3"></audio>
+    
+    <script>
+        const socket = io();
+        
+        socket.emit('join_kitchen');
+        
+        socket.on('novo_pedido', (pedido) => {
+            document.getElementById('notification-sound').play();
+            loadOrders();
+        });
+        
+        socket.on('pedido_atualizado', () => {
+            loadOrders();
+        });
+        
+        async function loadOrders() {
+            try {
+                const response = await fetch('/api/pedidos/ativos');
+                const pedidos = await response.json();
+                
+                renderOrders(pedidos);
+                updateStats(pedidos);
+            } catch (error) {
+                console.error('Erro ao carregar pedidos:', error);
+            }
+        }
+        
+        function renderOrders(pedidos) {
+            const grid = document.getElementById('orders-grid');
+            
+            if (pedidos.length === 0) {
+                grid.innerHTML = '<div class="empty-state">🎉 Nenhum pedido no momento</div>';
+                return;
+            }
+            
+            grid.innerHTML = pedidos.map(p => `
+                <div class="order-card ${p.status}" data-id="${p.id}">
+                    <div class="order-header">
+                        <div class="order-info">
+                            <span class="order-id">#${p.id}</span>
+                            <span class="order-table">Mesa ${p.mesa_numero}</span>
+                            <span class="order-client">👤 ${p.cliente_nome || 'Cliente'}</span>
+                        </div>
+                        <div class="order-time">${new Date(p.hora_pedido).toLocaleTimeString()}</div>
+                    </div>
+                    
+                    <div class="order-items">
+                        ${p.itens.map(item => `
+                            <div class="order-item">
+                                <span class="item-quantity">${item.quantity}x</span>
+                                <span class="item-name">${item.name}</span>
+                                <span class="item-price">R$ ${(item.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    ${p.observacao ? `
+                        <div class="order-observation">
+                            📝 ${p.observacao}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="order-total">
+                        Total: R$ ${p.total.toFixed(2)}
+                    </div>
+                    
+                    <div class="order-actions">
+                        ${p.status === 'pendente' ? 
+                            '<button class="btn btn-primary" onclick="updateStatus(' + p.id + ', \'preparando\')">Iniciar Preparo</button>' : ''}
+                        ${p.status === 'preparando' ? 
+                            '<button class="btn btn-success" onclick="updateStatus(' + p.id + ', \'pronto\')">Finalizar</button>' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function updateStats(pedidos) {
+            const pendentes = pedidos.filter(p => p.status === 'pendente').length;
+            const preparando = pedidos.filter(p => p.status === 'preparando').length;
+            const prontos = pedidos.filter(p => p.status === 'pronto').length;
+            
+            document.getElementById('stats').innerHTML = 
+                `Pendentes: ${pendentes} | Preparando: ${preparando} | Prontos: ${prontos}`;
+        }
+        
+        async function updateStatus(id, status) {
+            try {
+                const response = await fetch(`/api/pedidos/${id}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                
+                if (response.ok) {
+                    loadOrders();
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+            }
+        }
+        
+        loadOrders();
+        setInterval(loadOrders, 10000);
+    </script>
+</body>
+</html>
