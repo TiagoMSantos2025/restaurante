@@ -39,6 +39,24 @@ pastas.forEach(pasta => {
     }
 });
 
+// ==================== HEALTHCHECK PARA RAILWAY ====================
+// Esta rota deve ser a PRIMEIRA para o Railway funcionar
+app.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'healthy', 
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+});
+
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'online', 
+        environment: process.env.NODE_ENV || 'development',
+        timestamp: new Date().toISOString()
+    });
+});
+
 // ==================== MIDDLEWARES ====================
 app.use(cors({ origin: '*', credentials: true }));
 app.use(bodyParser.json({ limit: '10mb' }));
@@ -232,25 +250,6 @@ function criarDadosIniciais() {
                         [restauranteId, nome, desc, ordem]);
                 });
 
-                // Criar produtos
-                const produtos = [
-                    [1, 'Camarão à Milanesa', 'Camarões empanados crocantes', 45.90, 'Camarão, farinha, ovos', 'comida', 1, 20],
-                    [1, 'Bruschetta', 'Pão italiano com tomate e manjericão', 28.50, 'Pão, tomate, manjericão, azeite', 'comida', 0, 10],
-                    [2, 'Filé Mignon', 'Filé mignon ao molho madeira', 68.90, 'Filé mignon, molho madeira, batatas', 'comida', 1, 25],
-                    [2, 'Salmão Grelhado', 'Salmão grelhado com legumes', 72.50, 'Salmão, legumes da estação', 'comida', 1, 20],
-                    [3, 'Refrigerante', 'Coca-Cola 350ml', 8.00, null, 'bebida', 0, 2],
-                    [3, 'Suco Natural', 'Suco de laranja 500ml', 12.00, null, 'bebida', 0, 3],
-                    [3, 'Cerveja', 'Heineken long neck', 10.00, null, 'bebida', 0, 2],
-                    [4, 'Pudim', 'Pudim de leite condensado', 18.00, 'Leite condensado, ovos, açúcar', 'comida', 1, 10],
-                    [4, 'Brownie', 'Brownie com sorvete', 22.00, 'Chocolate, nozes, sorvete', 'comida', 1, 12]
-                ];
-
-                produtos.forEach(([catId, nome, desc, preco, ing, tipo, dest, tempo]) => {
-                    db.run(`INSERT INTO produtos (restaurante_id, categoria_id, nome, descricao, preco, ingredientes, tipo, destaque, tempo_preparo) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                        [restauranteId, catId, nome, desc, preco, ing, tipo, dest, tempo]);
-                });
-
                 console.log('✅ Dados iniciais criados com sucesso!');
             });
     });
@@ -276,13 +275,6 @@ function requireAuth(req, res, next) {
 
 function requireSuperAdmin(req, res, next) {
     if (!req.session.userId || req.session.userLevel !== 'super_admin') {
-        return res.redirect('/dashboard');
-    }
-    next();
-}
-
-function requireAdmin(req, res, next) {
-    if (!req.session.userId || !['super_admin', 'admin'].includes(req.session.userLevel)) {
         return res.redirect('/dashboard');
     }
     next();
@@ -644,16 +636,6 @@ app.get('/menu/:restauranteId', (req, res) => {
             </body>
             </html>
         `);
-    });
-});
-
-// ==================== HEALTH CHECK ====================
-
-app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'online', 
-        environment: process.env.NODE_ENV || 'development',
-        timestamp: new Date().toISOString()
     });
 });
 

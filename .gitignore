@@ -1,22 +1,25 @@
 # Dependências
 node_modules/
 
-# Banco de Dados e Arquivos de Dados
+# Banco de Dados
 *.db
-*.sqlite
 database/
-*.log
+*.sqlite
 
 # Arquivos de ambiente
 .env
 .env.local
 
-# Pastas de sistema e build
+# Pastas de sistema
 .DS_Store
 Thumbs.db
+logs/
 backups/
 reports/
-uploads/
+
+# Uploads
+public/uploads/
+public/qrcodes/
 
 # Logs do Railway
 *.railway
