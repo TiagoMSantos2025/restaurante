@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cardápio</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🍽️ Cardápio Digital</h1>
+    <p>Mesa: <span id="mesa"></span></p>
+    <p>Cardápio em desenvolvimento...</p>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        document.getElementById('mesa').textContent = urlParams.get('mesa') || '01';
+    </script>
+</body>
+</html>
