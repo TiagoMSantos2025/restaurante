@@ -2,7 +2,6 @@ const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const QRCode = require('qrcode');
 const fs = require('fs');
@@ -11,13 +10,84 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const VOLUME_PATH = process.env.RAILWAY_VOLUME_MOUNT_PATH || './data';
-const DB_PATH = path.join(VOLUME_PATH, 'restaurante.db');
+const DATA_FILE = path.join(VOLUME_PATH, 'database.json');
 
-// Criar pastas
-const pastas = [VOLUME_PATH, './views', './public'];
-pastas.forEach(pasta => {
-    if (!fs.existsSync(pasta)) fs.mkdirSync(pasta, { recursive: true });
-});
+// ==================== INICIALIZAÇÃO ====================
+console.log('🚀 Iniciando servidor...');
+console.log('📁 Pasta de dados:', VOLUME_PATH);
+
+// Criar pasta de dados se não existir
+if (!fs.existsSync(VOLUME_PATH)) {
+    fs.mkdirSync(VOLUME_PATH, { recursive: true });
+}
+
+// ==================== BANCO DE DADOS EM JSON ====================
+
+// Estrutura inicial do banco
+const bancoInicial = {
+    restaurantes: [
+        {
+            id: 1,
+            nome: 'Restaurante Principal',
+            email: 'principal@email.com'
+        }
+    ],
+    usuarios: [
+        {
+            id: 1,
+            restaurante_id: 1,
+            nome: 'Super Admin',
+            email: 'super@admin.com',
+            senha: bcrypt.hashSync('super123', 10),
+            nivel_acesso: 'super_admin'
+        },
+        {
+            id: 2,
+            restaurante_id: 1,
+            nome: 'Administrador',
+            email: 'admin@restaurante.com',
+            senha: bcrypt.hashSync('admin123', 10),
+            nivel_acesso: 'admin'
+        }
+    ],
+    mesas: []
+};
+
+// Criar 12 mesas para o restaurante 1
+for (let i = 1; i <= 12; i++) {
+    bancoInicial.mesas.push({
+        id: i,
+        restaurante_id: 1,
+        numero: i.toString().padStart(2, '0')
+    });
+}
+
+// Função para ler o banco
+function lerBanco() {
+    try {
+        if (!fs.existsSync(DATA_FILE)) {
+            // Criar arquivo com dados iniciais
+            fs.writeFileSync(DATA_FILE, JSON.stringify(bancoInicial, null, 2));
+            return bancoInicial;
+        }
+        const data = fs.readFileSync(DATA_FILE, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Erro ao ler banco:', error);
+        return bancoInicial;
+    }
+}
+
+// Função para salvar o banco
+function salvarBanco(dados) {
+    try {
+        fs.writeFileSync(DATA_FILE, JSON.stringify(dados, null, 2));
+        return true;
+    } catch (error) {
+        console.error('Erro ao salvar banco:', error);
+        return false;
+    }
+}
 
 // ==================== MIDDLEWARES ====================
 app.use(cors());
@@ -33,205 +103,139 @@ app.use(session({
 
 // ==================== ROTAS DE TESTE ====================
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
-app.get('/test', (req, res) => res.send('Servidor funcionando'));
-
-// ==================== BANCO DE DADOS ====================
-const db = new sqlite3.Database(DB_PATH);
-
-db.serialize(() => {
-    // Tabela de restaurantes
-    db.run(`CREATE TABLE IF NOT EXISTS restaurantes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome TEXT NOT NULL,
-        email TEXT UNIQUE NOT NULL
-    )`);
-
-    // Tabela de usuários
-    db.run(`CREATE TABLE IF NOT EXISTS usuarios (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        restaurante_id INTEGER,
-        nome TEXT NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        senha TEXT NOT NULL,
-        nivel_acesso TEXT DEFAULT 'admin',
-        FOREIGN KEY (restaurante_id) REFERENCES restaurantes(id)
-    )`);
-
-    // Tabela de mesas
-    db.run(`CREATE TABLE IF NOT EXISTS mesas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        restaurante_id INTEGER,
-        numero TEXT NOT NULL,
-        FOREIGN KEY (restaurante_id) REFERENCES restaurantes(id)
-    )`);
-
-    // Inserir dados iniciais se não existirem
-    db.get("SELECT * FROM restaurantes WHERE id = 1", (err, row) => {
-        if (!row) {
-            // Criar restaurante principal
-            db.run("INSERT INTO restaurantes (nome, email) VALUES (?, ?)", 
-                ['Restaurante Principal', 'principal@email.com']);
-            
-            // Criar super admin (pode ver todos os restaurantes)
-            const senhaSuper = bcrypt.hashSync('super123', 10);
-            db.run("INSERT INTO usuarios (restaurante_id, nome, email, senha, nivel_acesso) VALUES (1, ?, ?, ?, ?)",
-                ['Super Admin', 'super@admin.com', senhaSuper, 'super_admin']);
-            
-            // Criar admin do restaurante (vê apenas seu restaurante)
-            const senhaAdmin = bcrypt.hashSync('admin123', 10);
-            db.run("INSERT INTO usuarios (restaurante_id, nome, email, senha, nivel_acesso) VALUES (1, ?, ?, ?, ?)",
-                ['Administrador', 'admin@restaurante.com', senhaAdmin, 'admin']);
-
-            // Criar 12 mesas para o restaurante
-            for (let i = 1; i <= 12; i++) {
-                db.run("INSERT INTO mesas (restaurante_id, numero) VALUES (1, ?)", 
-                    [i.toString().padStart(2, '0')]);
-            }
-        }
-    });
-});
+app.get('/test', (req, res) => res.send('✅ Servidor funcionando com JSON DB'));
 
 // ==================== ROTAS DE AUTENTICAÇÃO ====================
 
-// Página inicial redireciona para login
-app.get('/', (req, res) => {
-    res.redirect('/login');
-});
+app.get('/', (req, res) => res.redirect('/login'));
 
-// Página de login
 app.get('/login', (req, res) => {
-    // Se já estiver logado, redireciona para o painel correto
     if (req.session.userId) {
-        if (req.session.userLevel === 'super_admin') {
-            return res.redirect('/super-admin');
-        } else {
-            return res.redirect('/dashboard');
-        }
+        return res.redirect(req.session.userLevel === 'super_admin' ? '/super-admin' : '/dashboard');
     }
     res.sendFile(path.join(__dirname, 'views', 'login.html'));
 });
 
-// Processar login (POST)
 app.post('/login', (req, res) => {
     const { email, senha } = req.body;
+    const banco = lerBanco();
     
-    db.get(`SELECT u.*, r.nome as restaurante_nome 
-            FROM usuarios u
-            LEFT JOIN restaurantes r ON u.restaurante_id = r.id
-            WHERE u.email = ?`, [email], (err, user) => {
-        
-        if (!user || !bcrypt.compareSync(senha, user.senha)) {
-            // Se erro, volta para login com mensagem
-            return res.redirect('/login?erro=1');
-        }
+    const user = banco.usuarios.find(u => u.email === email);
+    
+    if (!user || !bcrypt.compareSync(senha, user.senha)) {
+        return res.redirect('/login?erro=1');
+    }
 
-        // Salvar dados na sessão
-        req.session.userId = user.id;
-        req.session.userName = user.nome;
-        req.session.userLevel = user.nivel_acesso;
-        req.session.restauranteId = user.restaurante_id;
-        req.session.restauranteNome = user.restaurante_nome;
+    const restaurante = banco.restaurantes.find(r => r.id === user.restaurante_id);
 
-        // Redirecionar baseado no nível de acesso
-        if (user.nivel_acesso === 'super_admin') {
-            res.redirect('/super-admin');
-        } else {
-            res.redirect('/dashboard');
-        }
-    });
+    req.session.userId = user.id;
+    req.session.userName = user.nome;
+    req.session.userLevel = user.nivel_acesso;
+    req.session.restauranteId = user.restaurante_id;
+    req.session.restauranteNome = restaurante?.nome || 'Restaurante';
+
+    if (user.nivel_acesso === 'super_admin') {
+        res.redirect('/super-admin');
+    } else {
+        res.redirect('/dashboard');
+    }
 });
 
-// Logout
 app.get('/logout', (req, res) => {
     req.session.destroy();
     res.redirect('/login');
 });
 
-// ==================== MIDDLEWARE DE AUTENTICAÇÃO ====================
+// ==================== MIDDLEWARES DE PROTEÇÃO ====================
 
 function requireAuth(req, res, next) {
-    if (!req.session.userId) {
-        return res.redirect('/login');
-    }
+    if (!req.session.userId) return res.redirect('/login');
     next();
 }
 
 function requireSuperAdmin(req, res, next) {
-    if (!req.session.userId) {
-        return res.redirect('/login');
-    }
-    if (req.session.userLevel !== 'super_admin') {
-        return res.redirect('/dashboard');
-    }
+    if (!req.session.userId) return res.redirect('/login');
+    if (req.session.userLevel !== 'super_admin') return res.redirect('/dashboard');
     next();
 }
 
 // ==================== ROTAS DO SUPER ADMIN ====================
 
-// Painel do Super Admin
 app.get('/super-admin', requireSuperAdmin, (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'super-admin.html'));
 });
 
-// API para listar restaurantes (apenas super admin)
 app.get('/api/restaurantes', requireSuperAdmin, (req, res) => {
-    db.all('SELECT * FROM restaurantes', [], (err, rows) => {
-        res.json(rows || []);
-    });
+    const banco = lerBanco();
+    res.json(banco.restaurantes);
 });
 
-// API para criar novo restaurante (apenas super admin)
 app.post('/api/restaurantes', requireSuperAdmin, (req, res) => {
     const { nome, email, admin_nome, admin_email, admin_senha } = req.body;
+    const banco = lerBanco();
     
-    db.run('INSERT INTO restaurantes (nome, email) VALUES (?, ?)', 
-        [nome, email], function(err) {
-        if (err) return res.json({ success: false });
-        
-        const restauranteId = this.lastID;
-        const senhaHash = bcrypt.hashSync(admin_senha, 10);
-        
-        // Criar admin do restaurante
-        db.run('INSERT INTO usuarios (restaurante_id, nome, email, senha, nivel_acesso) VALUES (?, ?, ?, ?, ?)',
-            [restauranteId, admin_nome, admin_email, senhaHash, 'admin']);
-
-        // Criar 12 mesas para o novo restaurante
-        for (let i = 1; i <= 12; i++) {
-            db.run('INSERT INTO mesas (restaurante_id, numero) VALUES (?, ?)',
-                [restauranteId, i.toString().padStart(2, '0')]);
-        }
-        
-        res.json({ success: true, id: restauranteId });
-    });
+    // Verificar se email já existe
+    if (banco.usuarios.find(u => u.email === admin_email)) {
+        return res.json({ success: false, error: 'Email já existe' });
+    }
+    
+    // Criar novo restaurante
+    const novoRestaurante = {
+        id: banco.restaurantes.length + 1,
+        nome,
+        email
+    };
+    banco.restaurantes.push(novoRestaurante);
+    
+    // Criar admin do restaurante
+    const novoAdmin = {
+        id: banco.usuarios.length + 1,
+        restaurante_id: novoRestaurante.id,
+        nome: admin_nome,
+        email: admin_email,
+        senha: bcrypt.hashSync(admin_senha, 10),
+        nivel_acesso: 'admin'
+    };
+    banco.usuarios.push(novoAdmin);
+    
+    // Criar mesas para o restaurante
+    const inicioMesas = banco.mesas.length + 1;
+    for (let i = 1; i <= 12; i++) {
+        banco.mesas.push({
+            id: inicioMesas + i - 1,
+            restaurante_id: novoRestaurante.id,
+            numero: i.toString().padStart(2, '0')
+        });
+    }
+    
+    if (salvarBanco(banco)) {
+        res.json({ success: true, id: novoRestaurante.id });
+    } else {
+        res.json({ success: false, error: 'Erro ao salvar' });
+    }
 });
 
 // ==================== ROTAS DO ADMIN DO RESTAURANTE ====================
 
-// Dashboard do restaurante
 app.get('/dashboard', requireAuth, (req, res) => {
-    // Se for super admin tentando acessar dashboard, redireciona
     if (req.session.userLevel === 'super_admin') {
         return res.redirect('/super-admin');
     }
     res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
-// Página de QR Codes do restaurante
 app.get('/qrcodes', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'qrcodes.html'));
 });
 
-// API para buscar mesas do restaurante logado
 app.get('/api/mesas', requireAuth, (req, res) => {
-    db.all('SELECT * FROM mesas WHERE restaurante_id = ? ORDER BY numero', 
-        [req.session.restauranteId], (err, rows) => {
-        res.json(rows || []);
-    });
+    const banco = lerBanco();
+    const mesas = banco.mesas.filter(m => m.restaurante_id === req.session.restauranteId);
+    res.json(mesas);
 });
 
 // ==================== ROTAS DE QR CODE ====================
 
-// Gerar QR Code de uma mesa
 app.get('/qrcode/:restauranteId/:mesa', async (req, res) => {
     try {
         const restauranteId = req.params.restauranteId;
@@ -253,9 +257,59 @@ app.get('/qrcode/:restauranteId/:mesa', async (req, res) => {
     }
 });
 
-// ==================== ROTAS PÚBLICAS (CLIENTES) ====================
+app.get('/qrcodes/:restauranteId', requireSuperAdmin, (req, res) => {
+    const restauranteId = parseInt(req.params.restauranteId);
+    const banco = lerBanco();
+    const restaurante = banco.restaurantes.find(r => r.id === restauranteId);
+    
+    if (!restaurante) {
+        return res.status(404).send('Restaurante não encontrado');
+    }
+    
+    const mesas = banco.mesas.filter(m => m.restaurante_id === restauranteId);
+    
+    let html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>QR Codes - ${restaurante.nome}</title>
+        <style>
+            body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+            h1 { text-align: center; color: #333; }
+            .header { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+            .card { background: white; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .mesa { font-size: 24px; font-weight: bold; color: #667eea; margin: 10px 0; }
+            img { max-width: 200px; margin: 10px 0; }
+            .btn { background: #28a745; color: white; padding: 10px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 5px; }
+            .back { text-align: center; margin-top: 20px; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>📱 QR Codes - ${restaurante.nome}</h1>
+            <a href="/super-admin" style="color: #667eea;">← Voltar</a>
+        </div>
+        <div class="grid">
+    `;
+    
+    mesas.forEach(mesa => {
+        html += `
+            <div class="card">
+                <div class="mesa">Mesa ${mesa.numero}</div>
+                <img src="/qrcode/${restauranteId}/${mesa.numero}" alt="QR Code">
+                <br>
+                <a href="/qrcode/${restauranteId}/${mesa.numero}?download=1" class="btn">📥 Baixar</a>
+            </div>
+        `;
+    });
+    
+    html += `</div></body></html>`;
+    res.send(html);
+});
 
-// Cardápio público
+// ==================== ROTAS PÚBLICAS ====================
+
 app.get('/menu/:restauranteId', (req, res) => {
     const mesa = req.query.mesa || '01';
     res.send(`
@@ -284,7 +338,7 @@ app.get('/menu/:restauranteId', (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log('=================================');
-    console.log('🚀 SISTEMA DE RESTAURANTE');
+    console.log('🚀 SISTEMA DE RESTAURANTE (JSON DB)');
     console.log('=================================');
     console.log(`📱 URL: http://localhost:${PORT}`);
     console.log(`🔐 Login: /login`);
