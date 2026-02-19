@@ -11,12 +11,9 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
         body {
             background: #f5f7fa;
         }
-
-        /* Navbar */
         .navbar {
             background: white;
             padding: 15px 30px;
@@ -28,27 +25,22 @@
             top: 0;
             z-index: 100;
         }
-
         .logo h1 {
             font-size: 24px;
             color: #333;
         }
-
         .logo span {
             color: #667eea;
         }
-
         .user-menu {
             display: flex;
             align-items: center;
             gap: 20px;
         }
-
         .user-name {
             font-weight: 500;
             color: #555;
         }
-
         .logout-btn {
             background: #dc3545;
             color: white;
@@ -58,26 +50,20 @@
             font-weight: 500;
             transition: background 0.3s;
         }
-
         .logout-btn:hover {
             background: #c82333;
         }
-
-        /* Container principal */
         .container {
             padding: 30px;
             max-width: 1400px;
             margin: 0 auto;
         }
-
-        /* Cards de estatísticas */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
-
         .stat-card {
             background: white;
             border-radius: 15px;
@@ -88,39 +74,32 @@
             align-items: center;
             transition: transform 0.3s;
         }
-
         .stat-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
-
         .stat-info h3 {
             color: #999;
             font-size: 14px;
             text-transform: uppercase;
             margin-bottom: 10px;
         }
-
         .stat-info .value {
             font-size: 32px;
             font-weight: bold;
             color: #333;
         }
-
         .stat-icon {
             font-size: 48px;
             color: #667eea;
             opacity: 0.5;
         }
-
-        /* Menu de ações (cards de funcionalidades) */
         .actions-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin-bottom: 40px;
         }
-
         .action-card {
             background: white;
             border-radius: 12px;
@@ -129,43 +108,35 @@
             text-decoration: none;
             color: #333;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: transform 0.3s;
         }
-
         .action-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
-
         .action-icon {
             font-size: 48px;
             margin-bottom: 15px;
         }
-
         .action-title {
             font-size: 18px;
             font-weight: 600;
             margin-bottom: 8px;
         }
-
         .action-desc {
             font-size: 14px;
             color: #777;
         }
-
-        /* Seção de mesas */
         .section-title {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-
         .section-title h2 {
             font-size: 22px;
             color: #333;
         }
-
         .btn-primary {
             background: #667eea;
             color: white;
@@ -179,17 +150,15 @@
             display: inline-block;
             transition: background 0.3s;
         }
-
         .btn-primary:hover {
             background: #5a6fd8;
         }
-
         .mesas-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 20px;
+            margin-bottom: 30px;
         }
-
         .mesa-card {
             background: white;
             border-radius: 12px;
@@ -197,25 +166,23 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             border-left: 5px solid;
             transition: transform 0.3s;
+            cursor: pointer;
         }
-
         .mesa-card.disponivel { border-left-color: #28a745; }
         .mesa-card.ocupada { border-left-color: #dc3545; }
         .mesa-card.reservada { border-left-color: #ffc107; }
-
+        .mesa-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .mesa-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
         }
-
         .mesa-numero {
             font-size: 20px;
             font-weight: bold;
             color: #333;
         }
-
         .mesa-status {
             padding: 4px 12px;
             border-radius: 20px;
@@ -223,38 +190,12 @@
             font-weight: 500;
             text-transform: uppercase;
         }
-
         .status-disponivel { background: #d4edda; color: #155724; }
         .status-ocupada { background: #f8d7da; color: #721c24; }
         .status-reservada { background: #fff3cd; color: #856404; }
-
-        .mesa-cliente {
-            margin-top: 10px;
-            color: #555;
-        }
-
-        .mesa-valor {
-            margin-top: 10px;
-            font-weight: bold;
-            color: #28a745;
-        }
-
-        .loading, .empty {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-
-        /* Responsividade */
-        @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .container {
-                padding: 15px;
-            }
-        }
+        .mesa-cliente { margin-top: 10px; color: #555; }
+        .mesa-valor { margin-top: 10px; font-weight: bold; color: #28a745; }
+        .loading, .empty { text-align: center; padding: 40px; color: #999; }
     </style>
 </head>
 <body>
@@ -269,7 +210,6 @@
     </nav>
 
     <div class="container">
-        <!-- Cards de estatísticas -->
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card">
                 <div class="stat-info">
@@ -301,41 +241,59 @@
             </div>
         </div>
 
-        <!-- Ações rápidas (cards de menu) -->
         <div class="actions-grid">
-            <a href="/qrcodes" class="action-card">
-                <div class="action-icon">📱</div>
-                <div class="action-title">QR Codes</div>
-                <div class="action-desc">Gerar QR codes para as mesas</div>
-            </a>
             <a href="/mesas" class="action-card">
                 <div class="action-icon">🪑</div>
                 <div class="action-title">Mesas</div>
-                <div class="action-desc">Gerenciar mesas e status</div>
+                <div class="action-desc">Gerenciar mesas e fechar contas</div>
             </a>
             <a href="/produtos" class="action-card">
                 <div class="action-icon">🍽️</div>
                 <div class="action-title">Produtos</div>
-                <div class="action-desc">Cardápio e estoque</div>
+                <div class="action-desc">Cardápio e opcionais</div>
+            </a>
+            <a href="/categorias" class="action-card">
+                <div class="action-icon">📁</div>
+                <div class="action-title">Categorias</div>
+                <div class="action-desc">Organizar produtos</div>
             </a>
             <a href="/pedidos" class="action-card">
                 <div class="action-icon">📋</div>
                 <div class="action-title">Pedidos</div>
                 <div class="action-desc">Acompanhar pedidos</div>
             </a>
-            <a href="/funcionarios" class="action-card">
+            <a href="/clientes" class="action-card">
                 <div class="action-icon">👥</div>
-                <div class="action-title">Funcionários</div>
-                <div class="action-desc">Gerenciar equipe</div>
+                <div class="action-title">Clientes</div>
+                <div class="action-desc">Cadastro e fidelidade</div>
+            </a>
+            <a href="/estoque" class="action-card">
+                <div class="action-icon">📦</div>
+                <div class="action-title">Estoque</div>
+                <div class="action-desc">Controle de estoque</div>
+            </a>
+            <a href="/financeiro" class="action-card">
+                <div class="action-icon">💰</div>
+                <div class="action-title">Financeiro</div>
+                <div class="action-desc">Fluxo de caixa</div>
             </a>
             <a href="/relatorios" class="action-card">
                 <div class="action-icon">📊</div>
                 <div class="action-title">Relatórios</div>
                 <div class="action-desc">Análise de vendas</div>
             </a>
+            <a href="/qrcodes" class="action-card">
+                <div class="action-icon">📱</div>
+                <div class="action-title">QR Codes</div>
+                <div class="action-desc">Gerar QR das mesas</div>
+            </a>
+            <a href="/kitchen" class="action-card" target="_blank">
+                <div class="action-icon">👨‍🍳</div>
+                <div class="action-title">Cozinha</div>
+                <div class="action-desc">Painel da cozinha</div>
+            </a>
         </div>
 
-        <!-- Seção de mesas (prévia) -->
         <div class="section-title">
             <h2>🪑 Mesas do Restaurante</h2>
             <a href="/mesas" class="btn-primary">Ver todas</a>
@@ -346,26 +304,17 @@
     </div>
 
     <script>
-        // Função para carregar estatísticas (usando API /api/stats, se existir)
-        async function carregarEstatisticas() {
+        document.getElementById('userName').textContent = 'Admin';
+
+        async function carregarStats() {
             try {
-                const response = await fetch('/api/stats');
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('statMesas').textContent = data.mesasOcupadas || 0;
-                    document.getElementById('statPedidos').textContent = data.pedidosHoje || 0;
-                    document.getElementById('statFaturamento').textContent = `R$ ${(data.faturamentoHoje || 0).toFixed(2)}`;
-                    document.getElementById('statProdutos').textContent = data.totalProdutos || 0;
-                } else {
-                    // Fallback com dados de exemplo
-                    document.getElementById('statMesas').textContent = '4';
-                    document.getElementById('statPedidos').textContent = '23';
-                    document.getElementById('statFaturamento').textContent = 'R$ 1.245,00';
-                    document.getElementById('statProdutos').textContent = '45';
-                }
-            } catch (error) {
-                console.error('Erro ao carregar estatísticas:', error);
-                // Fallback
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                document.getElementById('statMesas').textContent = data.mesasOcupadas || 0;
+                document.getElementById('statPedidos').textContent = data.pedidosHoje || 0;
+                document.getElementById('statFaturamento').textContent = `R$ ${(data.faturamentoHoje || 0).toFixed(2)}`;
+                document.getElementById('statProdutos').textContent = data.totalProdutos || 0;
+            } catch {
                 document.getElementById('statMesas').textContent = '4';
                 document.getElementById('statPedidos').textContent = '23';
                 document.getElementById('statFaturamento').textContent = 'R$ 1.245,00';
@@ -373,23 +322,18 @@
             }
         }
 
-        // Função para carregar mesas (usando API /api/mesas)
         async function carregarMesas() {
             const grid = document.getElementById('mesasGrid');
             try {
-                const response = await fetch('/api/mesas');
-                if (!response.ok) throw new Error('Erro na API');
-                const mesas = await response.json();
-
+                const res = await fetch('/api/mesas');
+                const mesas = await res.json();
                 if (mesas.length === 0) {
                     grid.innerHTML = '<div class="empty">Nenhuma mesa cadastrada.</div>';
                     return;
                 }
-
-                // Exibe apenas as primeiras 6 mesas como preview
                 const preview = mesas.slice(0, 6);
                 grid.innerHTML = preview.map(m => `
-                    <div class="mesa-card ${m.status || 'disponivel'}">
+                    <div class="mesa-card ${m.status || 'disponivel'}" onclick="window.location.href='/mesas'">
                         <div class="mesa-header">
                             <span class="mesa-numero">Mesa ${m.numero}</span>
                             <span class="mesa-status status-${m.status || 'disponivel'}">${m.status || 'disponivel'}</span>
@@ -398,22 +342,14 @@
                         <div class="mesa-valor">R$ ${(m.valor_total || 0).toFixed(2)}</div>
                     </div>
                 `).join('');
-            } catch (error) {
-                console.error(error);
+            } catch {
                 grid.innerHTML = '<div class="empty">Erro ao carregar mesas.</div>';
             }
         }
 
-        // Define o nome do usuário (pode ser passado via backend ou fixo)
-        // Idealmente, o backend poderia injetar uma variável com o nome do usuário
-        document.getElementById('userName').textContent = 'Admin';
-
-        // Carrega dados iniciais
-        carregarEstatisticas();
+        carregarStats();
         carregarMesas();
-
-        // Atualiza as estatísticas a cada 30 segundos (opcional)
-        setInterval(carregarEstatisticas, 30000);
+        setInterval(carregarStats, 30000);
     </script>
 </body>
 </html>
